@@ -1,5 +1,8 @@
-import { NotFoundError } from "../../Errors/error.js";
+import { NotFoundError, BadRequestError } from "../../Errors/error.js";
 import User from "../../models/User/user.model.js";
+import cloudinary from "../../config/cloudinary.js";
+import streamifier from "streamifier";
+import path from "path";
 
 export const GetUserProfileController = async (req, res, next) => {
   try {
@@ -14,6 +17,80 @@ export const GetUserProfileController = async (req, res, next) => {
     res.status(200).json({
       message: "User profile fetched successfully",
       user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const UpdateUserAvatarController = async (req, res, next) => {
+  const userId = req.user._id;
+
+  try {
+    if (!req.file) {
+      throw new BadRequestError("No image uploaded");
+    }
+
+    const uploadStream = () =>
+      new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: "avatars" },
+          (error, result) => (error ? reject(error) : resolve(result))
+        );
+        streamifier.createReadStream(req.file.buffer).pipe(stream);
+      });
+
+    const result = await uploadStream();
+
+    await User.findByIdAndUpdate(userId, {
+      avatar: result.secure_url,
+    });
+
+    return res.status(200).json({
+      message: "Avatar updated successfully",
+      avatar: result.secure_url,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const UpdateUserCvController = async (req, res, next) => {
+  const userId = req.user._id;
+
+  try {
+    if (!req.file) {
+      throw new BadRequestError("No file uploaded");
+    }
+
+    const ext = req.file.originalname.split(".").pop().toLowerCase();
+
+    const uploadStream = () =>
+      new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder: "cvs",
+            public_id: `cv_${userId}`,
+            resource_type: "raw",
+            type: "upload",
+            access_mode: "public",
+            format: ext,
+          },
+          (error, result) => (error ? reject(error) : resolve(result))
+        );
+
+        streamifier.createReadStream(req.file.buffer).pipe(stream);
+      });
+
+    const result = await uploadStream();
+
+    await User.findByIdAndUpdate(userId, {
+      cv: result.secure_url,
+    });
+
+    res.status(200).json({
+      message: "CV updated successfully",
+      cv: result.secure_url,
     });
   } catch (error) {
     next(error);

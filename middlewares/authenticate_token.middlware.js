@@ -18,7 +18,7 @@ export const authenticateToken = async (req, res, next) => {
 
     const decodedToken = verifyToken(token);
 
-    const user = await User.findById(decodedToken._id);
+    const user = await User.findById(decodedToken.id);
 
     if (!user) {
       throw new UnAuthorizedError("Invalid or expired Token");
