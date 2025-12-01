@@ -1,0 +1,25 @@
+{
+  "auth": {
+    "all_fields_required": "All fields are required",
+    "user_already_exists": "User already exists",
+    "user_reactivated": "User reactivated successfully",
+    "user_registered": "User registered successfully",
+    "email_password_required": "Email and password are required",
+    "invalid_credentials": "Invalid credentials",
+    "login_successful": "Login successful",
+    "no_token_found": "No token found. Please login again",
+    "invalid_token": "Invalid or expired token",
+    "user_inactive": "User no longer exists or is inactive",
+    "token_refreshed": "Token refreshed successfully",
+    "logout_successful": "User has been logged out successfully",
+    "no_user_found": "No user found with this email",
+    "reset_code_sent": "Verification code sent to your email",
+    "no_reset_code": "No reset code found. Please request a new one",
+    "invalid_verification_code": "Invalid verification code",
+    "code_expired": "Verification code has expired. Please request a new one",
+    "code_verified": "Code verified successfully. You can now reset your password",
+    "password_reset_successful": "Password reset successful. You can now login with your new password"
+  },
+  "success": "success",
+  "error": "error"
+}

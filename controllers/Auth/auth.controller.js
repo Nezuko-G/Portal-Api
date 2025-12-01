@@ -20,7 +20,7 @@ export const SignUpController = async (req, res, next) => {
     const email = data.email.toLowerCase();
 
     if (!data.name || !data.email || !data.password) {
-      throw new BadRequestError("All fields are required");
+      throw new BadRequestError(res._t("auth.all_fields_required"));
     }
 
     const existingUser = await User.findOne({ email });
@@ -30,7 +30,7 @@ export const SignUpController = async (req, res, next) => {
       existingUser.is_deleted === false &&
       existingUser.is_active === true
     ) {
-      throw new BadRequestError("user already exists");
+      throw new BadRequestError(res._t("auth.user_already_exists"));
     }
 
     const hashedPassword = await hashPassword(data.password);
@@ -78,8 +78,8 @@ export const SignUpController = async (req, res, next) => {
     res.status(201).json({
       message:
         existingUser && existingUser.is_deleted
-          ? "User reactivated successfully"
-          : "User registered successfully",
+          ? res._t("auth.user_reactivated")
+          : res._t("auth.user_registered"),
       data: userResponse,
       token,
     });
@@ -90,25 +90,25 @@ export const SignUpController = async (req, res, next) => {
 
 // Login Controller
 export const LoginController = async (req, res, next) => {
-    console.log("Login body:", req.body);
+  console.log("Login body:", req.body);
 
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      throw new BadRequestError("Email and password are required");
+      throw new BadRequestError(res._t("auth.email_password_required"));
     }
 
     const user = await User.findOne({ email: email.toLowerCase() });
 
     if (!user || user.is_deleted || !user.is_active) {
-      throw new UnAuthorizedError("Invalid credentials");
+      throw new UnAuthorizedError(res._t("auth.invalid_credentials"));
     }
 
     const isPasswordValid = await ComparePassword(password, user.password);
 
     if (!isPasswordValid) {
-      throw new UnAuthorizedError("Invalid credentials");
+      throw new UnAuthorizedError(res._t("auth.invalid_credentials"));
     }
 
     const token = generateToken(
@@ -130,7 +130,7 @@ export const LoginController = async (req, res, next) => {
     setCookieToken(res, token, req);
 
     res.status(200).json({
-      message: "Login successful",
+      message: res._t("auth.login_successful"),
       data: userResponse,
       token,
     });
@@ -145,19 +145,19 @@ export const RefreshTokenController = async (req, res, next) => {
     const oldToken = req.cookies.jwt;
 
     if (!oldToken || oldToken === "loggedout") {
-      throw new UnAuthorizedError("No token found. Please login again");
+      throw new UnAuthorizedError(res._t("auth.no_token_found"));
     }
 
     const decoded = verifyToken(oldToken);
 
     if (!decoded) {
-      throw new UnAuthorizedError("Invalid or expired token");
+      throw new UnAuthorizedError(res._t("auth.invalid_token"));
     }
 
     const user = await User.findById(decoded.id);
 
     if (!user || user.is_deleted || !user.is_active) {
-      throw new UnAuthorizedError("User no longer exists or is inactive");
+      throw new UnAuthorizedError(res._t("auth.user_inactive"));
     }
 
     const newToken = generateToken(
@@ -171,8 +171,8 @@ export const RefreshTokenController = async (req, res, next) => {
     setCookieToken(res, newToken, req);
 
     res.status(200).json({
-      status: "success",
-      message: "Token refreshed successfully",
+      status: res._t("success"),
+      message: res._t("auth.token_refreshed"),
       token: newToken,
     });
   } catch (error) {
@@ -189,8 +189,8 @@ export const LogoutController = async (req, res, next) => {
     });
 
     res.status(200).json({
-      status: "success",
-      message: "User has been logged out successfully",
+      status: res._t("success"),
+      message: res._t("auth.logout_successful"),
     });
   } catch (error) {
     next(error);
@@ -199,53 +199,57 @@ export const LogoutController = async (req, res, next) => {
 
 // Forget Password
 export const ForgotPasswordController = async (req, res, next) => {
-  const { email } = req.body;
-
-  const user = await User.findOne({
-    email: email,
-    is_deleted: false,
-    is_active: true,
-  });
-
-  if (!user) {
-    throw new NotFoundError("No user found with this email");
-  }
-
-  const resetCode = generateResetCode();
-
-  const hashedCode = crypto
-    .createHash("sha256")
-    .update(resetCode)
-    .digest("hex");
-
-  user.resetPasswordCode = hashedCode;
-  user.resetPasswordCodeExpires = Date.now() + 30 * 60 * 1000; // 30 minutes
-  user.resetPasswordCodeVerified = false;
-
-  await user.save({ validateBeforeSave: false });
-
-  const emailMessage = `
-    <h2>Password Reset Request</h2>
-    <p>Hi ${user.name},</p>
-    <p>You requested to reset your password. Please use the following verification code:</p>
-    <h1 style="color: #4CAF50; font-size: 32px; letter-spacing: 5px;">${resetCode}</h1>
-    <p>This code will expire in 10 minutes.</p>
-    <p>If you didn't request this, please ignore this email.</p>
-  `;
-
   try {
-    const emailSender = new Email(user);
-    await emailSender.sendPasswordResetCode(resetCode);
+    const { email } = req.body;
 
-    res.status(200).json({
-      status: "success",
-      message: "Verification code sent to your email",
+    const user = await User.findOne({
+      email: email,
+      is_deleted: false,
+      is_active: true,
     });
-  } catch (error) {
-    user.resetPasswordCode = undefined;
-    user.resetPasswordCodeExpires = undefined;
-    user.resetPasswordCodeVerified = undefined;
+
+    if (!user) {
+      throw new NotFoundError(res._t("auth.no_user_found"));
+    }
+
+    const resetCode = generateResetCode();
+
+    const hashedCode = crypto
+      .createHash("sha256")
+      .update(resetCode)
+      .digest("hex");
+
+    user.resetPasswordCode = hashedCode;
+    user.resetPasswordCodeExpires = Date.now() + 30 * 60 * 1000; // 30 minutes
+    user.resetPasswordCodeVerified = false;
+
     await user.save({ validateBeforeSave: false });
+
+    const emailMessage = `
+      <h2>Password Reset Request</h2>
+      <p>Hi ${user.name},</p>
+      <p>You requested to reset your password. Please use the following verification code:</p>
+      <h1 style="color: #4CAF50; font-size: 32px; letter-spacing: 5px;">${resetCode}</h1>
+      <p>This code will expire in 30 minutes.</p>
+      <p>If you didn't request this, please ignore this email.</p>
+    `;
+
+    try {
+      const emailSender = new Email(user);
+      await emailSender.sendPasswordResetCode(resetCode);
+
+      res.status(200).json({
+        status: res._t("success"),
+        message: res._t("auth.reset_code_sent"),
+      });
+    } catch (error) {
+      user.resetPasswordCode = undefined;
+      user.resetPasswordCodeExpires = undefined;
+      user.resetPasswordCodeVerified = undefined;
+      await user.save({ validateBeforeSave: false });
+      next(error);
+    }
+  } catch (error) {
     next(error);
   }
 };
@@ -266,31 +270,27 @@ export const VerifyResetCodeController = async (req, res, next) => {
     );
 
     if (!user) {
-      throw new NotFoundError("No user found with this email");
+      throw new NotFoundError(res._t("auth.no_user_found"));
     }
 
     if (!user.resetPasswordCode || !user.resetPasswordCodeExpires) {
-      throw new BadRequestError(
-        "No reset code found. Please request a new one"
-      );
+      throw new BadRequestError(res._t("auth.no_reset_code"));
     }
 
     if (user.resetPasswordCode !== hashedCode) {
-      throw new BadRequestError("Invalid verification code");
+      throw new BadRequestError(res._t("auth.invalid_verification_code"));
     }
 
     if (Date.now() > user.resetPasswordCodeExpires) {
-      throw new BadRequestError(
-        "Verification code has expired. Please request a new one"
-      );
+      throw new BadRequestError(res._t("auth.code_expired"));
     }
 
     user.resetPasswordCodeVerified = true;
     await user.save({ validateBeforeSave: false });
 
     res.status(200).json({
-      status: "success",
-      message: "Code verified successfully. You can now reset your password",
+      status: res._t("success"),
+      message: res._t("auth.code_verified"),
     });
   } catch (error) {
     next(error);
@@ -313,23 +313,19 @@ export const ResetPasswordController = async (req, res, next) => {
     );
 
     if (!user) {
-      throw new NotFoundError("No user found with this email");
+      throw new NotFoundError(res._t("auth.no_user_found"));
     }
 
     if (!user.resetPasswordCode || !user.resetPasswordCodeExpires) {
-      throw new BadRequestError(
-        "No reset code found. Please request a new one"
-      );
+      throw new BadRequestError(res._t("auth.no_reset_code"));
     }
 
     if (user.resetPasswordCode !== hashedCode) {
-      throw new BadRequestError("Invalid verification code");
+      throw new BadRequestError(res._t("auth.invalid_verification_code"));
     }
 
     if (Date.now() > user.resetPasswordCodeExpires) {
-      throw new BadRequestError(
-        "Verification code has expired. Please request a new one"
-      );
+      throw new BadRequestError(res._t("auth.code_expired"));
     }
 
     const hashedPassword = await hashPassword(password);
@@ -342,9 +338,8 @@ export const ResetPasswordController = async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
 
     res.status(200).json({
-      status: "success",
-      message:
-        "Password reset successful. You can now login with your new password",
+      status: res._t("success"),
+      message: res._t("auth.password_reset_successful"),
     });
   } catch (error) {
     next(error);

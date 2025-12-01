@@ -7,14 +7,18 @@ import globalErrorHandler from "./middlewares/global_error_handler.middleware.js
 import { ApiRouter } from "./routers/index.js";
 import { notFoundMiddleware } from "./middlewares/not_found.middleware.js";
 import { swaggerUi, swaggerSpec } from "./utils/swagger.js";
+import i18n, { i18nMiddleware } from "./config/i18n.js";
 
 const app = express();
 
 // Middlewares
-app.use(cors(corsOptions));
 app.use(helmet());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
+
+app.use(i18n.init);
+app.use(i18nMiddleware);
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
