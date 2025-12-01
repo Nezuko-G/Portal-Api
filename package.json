@@ -1,8 +1,8 @@
 {
-  "name": "flow",
+  "name": "nezuko",
   "version": "1.0.0",
-  "description": "Pharmacy e-commerce platform",
-  "main": "app.js",
+  "description": "Nezuko HR management system built with Node.js, Express, MongoDB, PostgreSQL, and React.",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
@@ -10,21 +10,24 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aelaraby6/PharmaXpress.git"
+    "url": "https://github.com/Nezuko-G/Portal-Api.git"
   },
   "keywords": [
-    "pharmacy",
-    "e-commerce",
-    "medications",
-    "healthcare"
+    "hr-system",
+    "nezuko",
+    "management",
+    "attendance",
+    "employees",
+    "backend",
+    "nodejs"
   ],
-  "author": "Your Name Here",
+  "author": "Nezuko Team",
   "license": "ISC",
   "type": "module",
   "bugs": {
-    "url": "https://github.com/aelaraby6/PharmaXpress/issues"
+    "url": "https://github.com/aelaraby6/Nezuko-HR/issues"
   },
-  "homepage": "https://github.com/aelaraby6/PharmaXpress#readme",
+  "homepage": "https://github.com/aelaraby6/Nezuko-HR#readme",
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.7.0",
@@ -35,11 +38,15 @@
     "express": "^5.1.0",
     "express-rate-limit": "^8.0.1",
     "helmet": "^8.1.0",
+    "i18n": "^0.15.3",
     "joi": "^18.0.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.1",
     "multer": "^2.0.2",
     "nodemailer": "^7.0.11",
+    "pg": "^8.13.0",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.37.1",
     "streamifier": "^0.1.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
