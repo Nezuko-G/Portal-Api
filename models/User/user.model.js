@@ -18,12 +18,13 @@ const userSchema = new mongoose.Schema(
     phone: {
       type: String,
       trim: true,
-      required: true,
+      required: false,
       unique: true,
+      sparse: true, // Allows multiple null values
     },
     password: {
       type: String,
-      required: true,
+      required: false, // Not required for OAuth users
     },
     role: {
       type: String,
@@ -51,14 +52,35 @@ const userSchema = new mongoose.Schema(
       default: false,
       select: false,
     },
+    // OAuth provider fields
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true, // Allows multiple null values but unique non-null values
+    },
+    githubId: {
+      type: String,
+      unique: true,
+      sparse: true, // Allows multiple null values but unique non-null values
+    },
+    provider: {
+      type: String,
+      enum: ["local", "google", "github"],
+      default: "local",
+    },
+    avatar: {
+      type: String,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-userSchema.index({ email: 1 });
 userSchema.index({ is_deleted: 1, is_active: 1 });
+// Compound indexes for OAuth users
+userSchema.index({ provider: 1, googleId: 1 }, { sparse: true });
+userSchema.index({ provider: 1, githubId: 1 }, { sparse: true });
 
 const User = mongoose.model("User", userSchema);
 
