@@ -20,11 +20,10 @@ const userSchema = new mongoose.Schema(
       trim: true,
       required: false,
       unique: true,
-      sparse: true, // Allows multiple null values
     },
     password: {
       type: String,
-      required: false, // Not required for OAuth users
+      required: false,
     },
     role: {
       type: String,
@@ -41,27 +40,21 @@ const userSchema = new mongoose.Schema(
     },
     resetPasswordCode: {
       type: String,
-      select: false,
     },
     resetPasswordCodeExpires: {
       type: Date,
-      select: false,
     },
     resetPasswordCodeVerified: {
       type: Boolean,
       default: false,
-      select: false,
     },
-    // OAuth provider fields
     googleId: {
       type: String,
       unique: true,
-      sparse: true, // Allows multiple null values but unique non-null values
     },
     githubId: {
       type: String,
       unique: true,
-      sparse: true, // Allows multiple null values but unique non-null values
     },
     provider: {
       type: String,
@@ -70,6 +63,11 @@ const userSchema = new mongoose.Schema(
     },
     avatar: {
       type: String,
+      required: false,
+    },
+    cv: {
+      type: String,
+      required: false,
     },
   },
   {
@@ -78,9 +76,6 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.index({ is_deleted: 1, is_active: 1 });
-// Compound indexes for OAuth users
-userSchema.index({ provider: 1, googleId: 1 }, { sparse: true });
-userSchema.index({ provider: 1, githubId: 1 }, { sparse: true });
 
 const User = mongoose.model("User", userSchema);
 

@@ -16,3 +16,14 @@ export const setCookieToken = (res, token, req) => {
 export const generateResetCode = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
+
+export function slugify(text) {
+  return text
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/[\s\_]+/g, "-") // spaces & underscores → hyphens
+    .replace(/[^\w\-]+/g, "") // remove non-word chars
+    .replace(/\-\-+/g, "-") // collapse multiple hyphens
+    .replace(/^-+|-+$/g, ""); // trim hyphens from start/end
+}

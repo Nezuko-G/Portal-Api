@@ -1,8 +1,9 @@
 import { Router } from "express";
-// import {
-//   signupLimiter,
-//   loginLimiter,
-// } from "../../middlewares/rate_limiter.middleware.js";
+import passport from "passport";
+import {
+  signupLimiter,
+  loginLimiter,
+} from "../../middlewares/rate_limiter.middleware.js";
 import {
   SignUpController,
   LoginController,
@@ -20,32 +21,48 @@ import {
   VerifyResetCodeSchema,
 } from "../../validations/Auth/auth.validation.js";
 import { validate } from "../../middlewares/validate.middleware.js";
-import passport from "passport";
 
 const router = Router();
 
+// Standard Authentication
 router.post("/signup", validate(SignUpSchema), SignUpController);
-router.post("/login", validate(LoginSchema), LoginController);
-router.get("/logout", LogoutController);
-router.post("/refresh-token", RefreshTokenController);
-router.post("/forgot-password", validate(ForgotPasswordSchema), ForgotPasswordController);
-router.post("/verify-reset-code",validate(VerifyResetCodeSchema),VerifyResetCodeController);
-router.post("/reset-password",validate(ResetPasswordSchema), ResetPasswordController);
 
-router.get("/github", async (req, res, next) => {
+router.post("/login", loginLimiter, validate(LoginSchema), LoginController);
+
+router.get("/logout", LogoutController);
+
+router.post("/refresh-token", RefreshTokenController);
+
+// Password Reset Flow
+router.post(
+  "/forgot-password",
+  validate(ForgotPasswordSchema),
+  ForgotPasswordController
+);
+
+router.post(
+  "/verify-reset-code",
+  validate(VerifyResetCodeSchema),
+  VerifyResetCodeController
+);
+
+router.post(
+  "/reset-password",
+  validate(ResetPasswordSchema),
+  ResetPasswordController
+);
+
+// GitHub OAuth Routes
+router.get("/github", loginLimiter, async (req, res, next) => {
   console.log("GitHub auth route hit, query params:", req.query);
 
-  // Try to clear any existing sessions/cookies that might interfere
   res.clearCookie("connect.sid");
 
-  // Force GitHub to show authorization screen by using a different approach
-  // We'll construct the URL manually with specific parameters
   try {
     const state = `auth_${Date.now()}_${Math.random()
       .toString(36)
       .substring(7)}`;
 
-    // GitHub OAuth URL with parameters that might help force re-authorization
     const githubAuthUrl =
       `https://github.com/login/oauth/authorize` +
       `?client_id=${process.env.GITHUB_CLIENT_ID}` +
@@ -58,7 +75,7 @@ router.get("/github", async (req, res, next) => {
       `&response_type=code` +
       `&allow_signup=true`;
 
-    console.log("Forcing GitHub OAuth with URL:", githubAuthUrl);
+    console.log("Redirecting to GitHub OAuth:", githubAuthUrl);
     res.redirect(githubAuthUrl);
   } catch (error) {
     console.error("Error in GitHub auth route:", error);
@@ -66,13 +83,11 @@ router.get("/github", async (req, res, next) => {
   }
 });
 
-// Add a route to revoke GitHub authorization (call this before login if needed)
-router.post("/github/revoke", async (req, res) => {
+router.post("/github/revoke", loginLimiter, async (req, res) => {
   try {
     const githubAccessToken = req.cookies.githubAccessToken;
 
     if (githubAccessToken) {
-      // Revoke the GitHub app authorization using GitHub API
       const revokeUrl = `https://api.github.com/applications/${process.env.GITHUB_CLIENT_ID}/grant`;
 
       const response = await fetch(revokeUrl, {
@@ -96,7 +111,6 @@ router.post("/github/revoke", async (req, res) => {
       }
     }
 
-    // Clear all cookies regardless of revocation success
     res.clearCookie("refreshToken");
     res.clearCookie("connect.sid");
     res.clearCookie("githubAccessToken");
@@ -107,7 +121,7 @@ router.post("/github/revoke", async (req, res) => {
     });
   } catch (error) {
     console.error("Error revoking GitHub auth:", error);
-    // Still clear cookies even if revocation fails
+
     res.clearCookie("refreshToken");
     res.clearCookie("connect.sid");
     res.clearCookie("githubAccessToken");
@@ -129,8 +143,7 @@ router.get(
   (req, res) => {
     try {
       console.log("GitHub callback - User object:", req.user);
-      const { accessToken, refreshToken, user, githubAccessToken } =
-        req.user;
+      const { accessToken, refreshToken, user, githubAccessToken } = req.user;
 
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
@@ -138,7 +151,6 @@ router.get(
         sameSite: "strict",
       });
 
-      // Store GitHub access token for potential revocation
       if (githubAccessToken) {
         res.cookie("githubAccessToken", githubAccessToken, {
           httpOnly: true,
@@ -148,7 +160,7 @@ router.get(
       }
 
       console.log("GitHub callback - Redirecting to dashboard with token");
-      // Redirect to client with success and token in URL params
+
       res.redirect(
         `http://localhost:5173/dashboard?token=${accessToken}&auth=success&provider=github`
       );
@@ -159,12 +171,11 @@ router.get(
   }
 );
 
-// Auth With Google
+// Google OAuth Routes
 
-router.get("/google", (req, res, next) => {
+router.get("/google", loginLimiter, (req, res, next) => {
   console.log("Google auth route hit, query params:", req.query);
 
-  // Try to clear any existing sessions/cookies that might interfere
   res.clearCookie("connect.sid");
 
   passport.authenticate("google", {
@@ -191,16 +202,16 @@ router.get(
       });
 
       console.log("Google callback - Redirecting to dashboard with token");
+
       // Redirect to client with success and token in URL params
       res.redirect(
         `http://localhost:5173/dashboard?token=${accessToken}&auth=success&provider=google`
       );
     } catch (error) {
       console.error("Error in Google callback:", error);
-      res.redirect("http://localhost:5173/login?error=google_auth_failed");
+      res.redirect("http://localhost:5173/login?error=google_callback_failed");
     }
   }
 );
-
 
 export { router as AuthRouter };
