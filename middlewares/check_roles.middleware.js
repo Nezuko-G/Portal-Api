@@ -5,11 +5,11 @@ export const checkRole = (allowedRoles) => {
     const userRole = req.user.role;
 
     if (!userRole) {
-      return new UnAuthorizedError("Unauthorized");
+      return next(new UnAuthorizedError("Unauthorized"));
     }
 
     if (!allowedRoles.includes(userRole)) {
-      return new ForbiddenError("Forbidden: You don't have permission");
+      return next(new ForbiddenError("Forbidden: You don't have permission"));
     }
     next();
   };

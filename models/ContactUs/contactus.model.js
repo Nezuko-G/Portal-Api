@@ -1,6 +1,12 @@
 import { Schema, model } from "mongoose";
 
 const ContactUsSchema = new Schema({
+  slug: {
+    type: String,
+    unique: true,
+    lowercase: true,
+    trim: true,
+  },
   name: {
     type: String,
     required: true,
@@ -25,5 +31,7 @@ const ContactUsSchema = new Schema({
     default: false,
   },
 });
+
+ContactUsSchema.index({ is_deleted: 1 });
 
 export const ContactUsModel = model("ContactUs", ContactUsSchema);
