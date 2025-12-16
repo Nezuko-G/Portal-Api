@@ -38,6 +38,27 @@
     "not_found": "Keyword not found",
     "already_exists": "Keyword already exists"
   },
+  "country": {
+    "created": "Country created successfully",
+    "fetched_all": "Countries fetched successfully",
+    "fetched": "Country fetched successfully",
+    "updated": "Country updated successfully",
+    "deleted": "Country deleted successfully",
+
+    "not_found": "Country not found",
+    "already_exists": "Country already exists",
+    "already_deleted": "Country is already deleted",
+
+    "name_code_required": "Country name and code are required",
+    "invalid_name": "Country with this name does not exist",
+    "code_mismatch": "Country code does not match the country name",
+
+    "cities_required": "Country must have at least one city",
+    "duplicate_cities": "Duplicate city names are not allowed",
+
+    "no_countries": "No countries found",
+    "update_required": "Update data is required"
+  },
   "success": "success",
   "error": "error"
 }
