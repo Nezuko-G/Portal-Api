@@ -20,6 +20,45 @@
     "code_verified": "Code verified successfully. You can now reset your password",
     "password_reset_successful": "Password reset successful. You can now login with your new password"
   },
+  "experience_level": {
+    "created": "Experience Level created successfully",
+    "fetched_all": "Experience Levels fetched successfully",
+    "fetched": "Experience Level fetched successfully",
+    "updated": "Experience Level updated successfully",
+    "deleted": "Experience Level deleted successfully",
+    "not_found": "Experience Level not found",
+    "already_exists": "Experience Level with this title already exists"
+  },
+  "keyword": {
+    "created": "Keyword created successfully",
+    "fetched_all": "Keywords fetched successfully",
+    "fetched": "Keyword fetched successfully",
+    "updated": "Keyword updated successfully",
+    "deleted": "Keyword deleted successfully",
+    "not_found": "Keyword not found",
+    "already_exists": "Keyword already exists"
+  },
+  "country": {
+    "created": "Country created successfully",
+    "fetched_all": "Countries fetched successfully",
+    "fetched": "Country fetched successfully",
+    "updated": "Country updated successfully",
+    "deleted": "Country deleted successfully",
+
+    "not_found": "Country not found",
+    "already_exists": "Country already exists",
+    "already_deleted": "Country is already deleted",
+
+    "name_code_required": "Country name and code are required",
+    "invalid_name": "Country with this name does not exist",
+    "code_mismatch": "Country code does not match the country name",
+
+    "cities_required": "Country must have at least one city",
+    "duplicate_cities": "Duplicate city names are not allowed",
+
+    "no_countries": "No countries found",
+    "update_required": "Update data is required"
+  },
   "success": "success",
   "error": "error"
 }
