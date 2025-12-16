@@ -3,11 +3,22 @@ import { Schema, model } from "mongoose";
 const ExperienceLevelSchema = new Schema(
   {
     title: {
+      en: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+      ar: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+    },
+    slug: {
       type: String,
-      required: true,
       unique: true,
       lowercase: true,
-      trim: true, // junior, mid, senior
+      trim: true,
     },
     minYears: {
       type: Number,

@@ -18,6 +18,10 @@ export const authenticateToken = async (req, res, next) => {
 
     const decodedToken = verifyToken(token);
 
+    if (!decodedToken || !decodedToken.id) {
+      throw new UnAuthorizedError("Invalid or expired Token");
+    }
+
     const user = await User.findById(decodedToken.id);
 
     if (!user) {

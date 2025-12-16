@@ -20,6 +20,24 @@
     "code_verified": "Code verified successfully. You can now reset your password",
     "password_reset_successful": "Password reset successful. You can now login with your new password"
   },
+  "experience_level": {
+    "created": "Experience Level created successfully",
+    "fetched_all": "Experience Levels fetched successfully",
+    "fetched": "Experience Level fetched successfully",
+    "updated": "Experience Level updated successfully",
+    "deleted": "Experience Level deleted successfully",
+    "not_found": "Experience Level not found",
+    "already_exists": "Experience Level with this title already exists"
+  },
+  "keyword": {
+    "created": "Keyword created successfully",
+    "fetched_all": "Keywords fetched successfully",
+    "fetched": "Keyword fetched successfully",
+    "updated": "Keyword updated successfully",
+    "deleted": "Keyword deleted successfully",
+    "not_found": "Keyword not found",
+    "already_exists": "Keyword already exists"
+  },
   "success": "success",
   "error": "error"
 }
