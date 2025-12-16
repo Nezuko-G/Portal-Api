@@ -3,8 +3,19 @@ import { Schema, model } from "mongoose";
 const KeywordSchema = new Schema(
   {
     word: {
+      en: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+      ar: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+    },
+    slug: {
       type: String,
-      required: true,
       unique: true,
       lowercase: true,
       trim: true,
