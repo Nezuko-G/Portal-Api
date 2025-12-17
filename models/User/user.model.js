@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       unique: true,
-      required: true,
+      sparse: true,
       trim: true,
       lowercase: true,
     },
@@ -19,6 +19,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
       required: false,
+      sparse: true,
       unique: true,
     },
     password: {
@@ -51,10 +52,12 @@ const userSchema = new mongoose.Schema(
     googleId: {
       type: String,
       unique: true,
+      sparse: true,
     },
     githubId: {
       type: String,
       unique: true,
+      sparse: true,
     },
     provider: {
       type: String,

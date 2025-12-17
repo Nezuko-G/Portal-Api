@@ -70,19 +70,31 @@ passport.use(
               provider: "github",
               is_active: true,
             });
-            console.log("Created new user with email:", userEmail);
+            console.log("Created new GitHub user:", userEmail);
           } catch (createError) {
+            console.error("Error creating GitHub user:", createError);
             // Handle duplicate key error
             if (createError.code === 11000) {
               console.log(
-                "User already exists, attempting to find existing user"
+                "Duplicate key error - User already exists, attempting to find existing user"
               );
               // Try to find by email or githubId
               user = await User.findOne({
                 $or: [{ githubId: profile.id }, { email: userEmail }],
               });
+              
               if (!user) {
+                console.error("Could not find user after duplicate key error");
                 throw new Error("Failed to create or find existing user");
+              }
+              
+              // Update the existing user with GitHub ID if they don't have one
+              if (!user.githubId && userEmail) {
+                user.githubId = profile.id;
+                user.provider = "github";
+                user.avatar = user.avatar || profile.photos?.[0]?.value;
+                await user.save();
+                console.log("Updated existing user with GitHub ID:", userEmail);
               }
             } else {
               throw createError;
@@ -97,20 +109,19 @@ passport.use(
           }
         }
 
-        // Generate JWT tokens for our application
-        const payload = {
-          name: user.name,
-          email: user.email,
-          phone: user.phone,
-          _id: user._id.toString(),
-          role: user.role,
-        };
-
-        const { accessToken: jwtAccessToken } = generateToken(payload);
+        // Generate JWT token for our application
+        const jwtAccessToken = generateToken(
+          user.name,
+          user.email,
+          user.phone,
+          user._id.toString(),
+          user.role
+        );
 
         return done(null, {
           user,
           accessToken: jwtAccessToken,
+          refreshToken: jwtAccessToken,
           githubAccessToken: accessToken, // Store GitHub OAuth token for revocation
         });
       } catch (err) {
@@ -132,33 +143,50 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
+        console.log("Google profile data:", JSON.stringify(profile, null, 2));
+        console.log("Google profile emails:", profile.emails);
+
         let user = await User.findOne({ googleId: profile.id });
+        const userEmail = profile.emails?.[0]?.value || null;
 
         if (!user) {
           try {
             user = await User.create({
               googleId: profile.id,
               name: profile.displayName,
-              email: profile.emails?.[0]?.value || null,
+              email: userEmail,
               avatar: profile.photos?.[0]?.value || null,
               provider: "google",
               is_active: true,
             });
+            console.log("Created new Google user:", userEmail);
           } catch (createError) {
+            console.error("Error creating Google user:", createError);
             // Handle duplicate key error
             if (createError.code === 11000) {
               console.log(
-                "User already exists, attempting to find existing user"
+                "Duplicate key error - User already exists, attempting to find existing user"
               );
               // Try to find by email or googleId
               user = await User.findOne({
                 $or: [
                   { googleId: profile.id },
-                  { email: profile.emails?.[0]?.value },
+                  { email: userEmail },
                 ],
               });
+              
               if (!user) {
+                console.error("Could not find user after duplicate key error");
                 throw new Error("Failed to create or find existing user");
+              }
+              
+              // Update the existing user with Google ID if they don't have one
+              if (!user.googleId && userEmail) {
+                user.googleId = profile.id;
+                user.provider = "google";
+                user.avatar = user.avatar || profile.photos?.[0]?.value;
+                await user.save();
+                console.log("Updated existing user with Google ID:", userEmail);
               }
             } else {
               throw createError;
@@ -166,20 +194,19 @@ passport.use(
           }
         }
 
-        // Generate JWT tokens for our application
-        const payload = {
-          name: user.name,
-          email: user.email,
-          phone: user.phone,
-          _id: user._id.toString(),
-          role: user.role,
-        };
-
-        const { accessToken: jwtAccessToken } = generateToken(payload);
+        // Generate JWT token for our application
+        const jwtAccessToken = generateToken(
+          user.name,
+          user.email,
+          user.phone,
+          user._id.toString(),
+          user.role
+        );
 
         return done(null, {
           user,
           accessToken: jwtAccessToken,
+          refreshToken: jwtAccessToken,
         });
       } catch (err) {
         return done(err, null);

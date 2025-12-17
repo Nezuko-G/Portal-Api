@@ -159,7 +159,7 @@ router.get(
         });
       }
 
-      console.log("GitHub callback - Redirecting to dashboard with token");
+      console.log("GitHub callback - Redirecting to home with token");
 
       res.redirect(
         `http://localhost:5173/`
