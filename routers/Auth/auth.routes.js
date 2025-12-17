@@ -162,7 +162,7 @@ router.get(
       console.log("GitHub callback - Redirecting to dashboard with token");
 
       res.redirect(
-        `http://localhost:5173/dashboard?token=${accessToken}&auth=success&provider=github`
+        `http://localhost:5173/`
       );
     } catch (error) {
       console.error("Error in GitHub callback:", error);
@@ -205,7 +205,7 @@ router.get(
 
       // Redirect to client with success and token in URL params
       res.redirect(
-        `http://localhost:5173/dashboard?token=${accessToken}&auth=success&provider=google`
+        `http://localhost:5173/`
       );
     } catch (error) {
       console.error("Error in Google callback:", error);
