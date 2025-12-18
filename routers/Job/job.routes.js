@@ -8,6 +8,7 @@ import {
   getAllJobsController,
   getOneJobController,
   deleteJobController,
+  toggleJobActivationController
 } from "../../controllers/Job/job.controller.js";
 import {
   createJobSchema,
@@ -38,6 +39,13 @@ router.patch(
 //   checkRole(["admin"]),
   validate(updateJobSchema),
   updateJobController
+);
+
+router.patch(
+  "/toggle-activation/:id",
+//   authenticateToken,
+//   checkRole(["admin"]),
+  toggleJobActivationController
 );
 
 // User Routes
