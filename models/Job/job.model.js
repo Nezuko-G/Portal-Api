@@ -7,6 +7,7 @@ const ListItemSchema = new Schema({
 const JobSchema = new Schema(
   {
     title: { type: String, required: true, trim: true },
+    slug: { type: String, required: true },
     jobId: { type: String, unique: true },
     company: { type: String, required: true, trim: true },
     organization: { type: String, trim: true },
@@ -40,11 +41,15 @@ const JobSchema = new Schema(
       enum: ["office", "remote", "hybrid"],
       default: "office",
     },
-    postedAt: { type: Date, default: Date.now },
+    expirationDate: {
+      type: Date,
+      required: true,
+    },
     duration: { type: String },
     is_deleted: { type: Boolean, default: false },
+    is_active: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
 
-export const JobModel = model("Job", JobSchema);
+export const JobModel = model("JobModel", JobSchema);

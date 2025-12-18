@@ -10,8 +10,11 @@ import { notFoundMiddleware } from "./middlewares/not_found.middleware.js";
 import { swaggerUi, swaggerSpec } from "./utils/swagger.js";
 import i18n, { i18nMiddleware } from "./config/i18n.js";
 import passport from "./config/passport.config.js";
+import startCronJobs from "./jobs/index.js";
 
 const app = express();
+
+startCronJobs();
 
 // Middlewares
 app.use(helmet());
