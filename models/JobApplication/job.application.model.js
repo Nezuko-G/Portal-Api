@@ -3,7 +3,7 @@ import { Schema, model } from "mongoose";
 const JobApplicationSchema = new Schema(
   {
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    job: { type: Schema.Types.ObjectId, ref: "Job", required: true },
+    job: { type: Schema.Types.ObjectId, ref: "JobModel", required: true },
     status: {
       type: String,
       enum: ["pending", "accepted", "rejected"],
