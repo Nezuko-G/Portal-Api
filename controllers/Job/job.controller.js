@@ -16,9 +16,16 @@ export const createJobController = async (req, res, next) => {
     const newJob = new JobModel({ ...data, slug });
     await newJob.save();
 
+    const populatedJob = await JobModel.findById(newJob._id)
+      .populate("fieldOfWork")
+      .populate("experienceLevel")
+      .populate("keywords")
+      .populate("country")
+      .select("-__v");
+
     res.status(201).json({
       message: "Job created successfully",
-      data: newJob,
+      data: populatedJob,
     });
   } catch (error) {
     next(error);
@@ -30,7 +37,12 @@ export const getAllJobsController = async (req, res, next) => {
     const jobs = await JobModel.find({
       is_deleted: false,
       is_active: true,
-    }).select("-__v");
+    })
+      .populate("fieldOfWork")
+      .populate("experienceLevel")
+      .populate("keywords")
+      .populate("country")
+      .select("-__v");
 
     res.json({
       message: "Jobs fetched successfully",
@@ -52,7 +64,12 @@ export const getOneJobController = async (req, res, next) => {
       _id: id,
       is_deleted: false,
       is_active: true,
-    }).select("-__v");
+    })
+      .populate("fieldOfWork")
+      .populate("experienceLevel")
+      .populate("keywords")
+      .populate("country")
+      .select("-__v");
 
     if (!job) {
       throw new NotFoundError("Job not found");
@@ -110,7 +127,12 @@ export const updateJobController = async (req, res, next) => {
       id,
       { $set: updateData },
       { new: true, runValidators: true }
-    ).select("-__v");
+    )
+      .populate("fieldOfWork")
+      .populate("experienceLevel")
+      .populate("keywords")
+      .populate("country")
+      .select("-__v");
 
     if (!job) {
       throw new NotFoundError("Job not found");
@@ -123,4 +145,23 @@ export const updateJobController = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+};
+
+export const toggleJobActivationController = async (req, res) => {
+  const { id } = req.params;
+  if (!id) {
+    return res.status(400).json({ message: "Job ID is required" });
+  }
+  const job = await JobModel.findById(id);
+  if (!job) {
+    return res.status(404).json({ message: "Job not found" });
+  }
+  job.is_active = !job.is_active;
+  await job.save();
+  return res.json({
+    message: `Job has been ${
+      job.is_active ? "activated" : "deactivated"
+    } successfully`,
+    data: job,
+  });
 };
