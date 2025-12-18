@@ -20,31 +20,31 @@ const router = Router();
 // Admin Routes
 router.post(
   "/",
-//   authenticateToken,
-//   checkRole(["admin"]),
+  authenticateToken,
+  checkRole(["admin"]),
   validate(createJobSchema),
   createJobController
 );
 
 router.delete(
   "/:id",
-//   authenticateToken,
-//   checkRole(["admin"]),
+  authenticateToken,
+  checkRole(["admin"]),
   deleteJobController
 );
 
 router.patch(
   "/:id",
-//   authenticateToken,
-//   checkRole(["admin"]),
+  authenticateToken,
+  checkRole(["admin"]),
   validate(updateJobSchema),
   updateJobController
 );
 
 router.patch(
   "/toggle-activation/:id",
-//   authenticateToken,
-//   checkRole(["admin"]),
+  authenticateToken,
+  checkRole(["admin"]),
   toggleJobActivationController
 );
 
