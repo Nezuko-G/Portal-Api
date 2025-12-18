@@ -6,6 +6,7 @@ import { ContactUsRouter } from "./ContactUs/contactus.route.js";
 import { FAQRouter } from "./FAQ/faq.route.js";
 import { CountryRouter } from "./Country/country.routes.js";
 import { JobRouter } from "./Job/job.routes.js";
+import { JobApplicationRouter } from "./Job/job.application.routes.js";
 import { ExperienceLevelRouter } from "./ExperienceLevel/experiencelevel.route.js";
 import { keywordRouter } from "./Keyword/keyword.route.js";
 
@@ -18,6 +19,7 @@ router.use("/contactus", ContactUsRouter);
 router.use("/faq", FAQRouter);
 router.use("/country", CountryRouter);
 router.use("/job", JobRouter);
+router.use("/job-application", JobApplicationRouter);
 router.use("/keyword", keywordRouter);
 router.use("/experience", ExperienceLevelRouter);
 

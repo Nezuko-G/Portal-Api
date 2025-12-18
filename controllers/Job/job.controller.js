@@ -34,20 +34,90 @@ export const createJobController = async (req, res, next) => {
 
 export const getAllJobsController = async (req, res, next) => {
   try {
-    const jobs = await JobModel.find({
+    const {
+      country,
+      search,
+      keyword,
+      page = 1,
+      limit = 10,
+      fieldOfWork,
+      experienceLevel,
+      jobType,
+      workMode,
+    } = req.query;
+
+    // Build query
+    const query = {
       is_deleted: false,
       is_active: true,
-    })
+    };
+
+    // Filter by country
+    if (country) {
+      validateObjectId(country, "country id");
+      query.country = country;
+    }
+
+    // Filter by fieldOfWork (category)
+    if (fieldOfWork) {
+      validateObjectId(fieldOfWork, "field of work id");
+      query.fieldOfWork = fieldOfWork;
+    }
+
+    // Filter by experience level
+    if (experienceLevel) {
+      validateObjectId(experienceLevel, "experience level id");
+      query.experienceLevel = experienceLevel;
+    }
+
+    // Filter by job type
+    if (jobType && ["full-time", "part-time", "internship"].includes(jobType)) {
+      query.jobType = jobType;
+    }
+
+    // Filter by work mode
+    if (workMode && ["office", "remote", "hybrid"].includes(workMode)) {
+      query.workMode = workMode;
+    }
+
+    // Search in title, company, or description
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { company: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // Filter by keyword (if searching by keyword ObjectId)
+    if (keyword) {
+      validateObjectId(keyword, "keyword id");
+      query.keywords = keyword;
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const jobs = await JobModel.find(query)
       .populate("fieldOfWork")
       .populate("experienceLevel")
       .populate("keywords")
       .populate("country")
-      .select("-__v");
+      .select("-__v")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await JobModel.countDocuments(query);
 
     res.json({
       message: "Jobs fetched successfully",
-      total: jobs.length,
       data: jobs,
+      pagination: {
+        total,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        totalPages: Math.ceil(total / parseInt(limit)),
+      },
     });
   } catch (error) {
     next(error);
