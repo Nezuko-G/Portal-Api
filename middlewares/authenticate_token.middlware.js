@@ -4,13 +4,11 @@ import { UnAuthorizedError } from "../Errors/error.js";
 
 export const authenticateToken = async (req, res, next) => {
   try {
-    const authHeader = req.headers["authorization"];
-
-    if (!authHeader) {
-      throw new UnAuthorizedError("Token Not provided");
-    }
-
-    const token = authHeader.split(" ")[1];
+    const token = req.cookies.jwt
+      ? req.cookies.jwt
+      : authHeader.startsWith("Bearer ")
+      ? authHeader.split(" ")[1]
+      : null;
 
     if (!token) {
       throw new UnAuthorizedError("Token Not provided");
