@@ -26,9 +26,7 @@ export const createContactUsController = async (req, res, next) => {
     if (existingContact) {
       throw new BadRequestError("Contact message from this email already exists");
     }
-    const slug = slugify(data.name);
     const newContact = new ContactUsModel({
-      slug: slug,
       ...data,
     });
     await newContact.save();

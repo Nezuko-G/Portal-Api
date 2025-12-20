@@ -31,10 +31,20 @@ export const UpdateUserAvatarController = async (req, res, next) => {
       throw new BadRequestError("No image uploaded");
     }
 
+    // Validate image type - allow only PNG and JPG
+    const allowedImageTypes = ["image/png", "image/jpeg", "image/jpg"];
+    
+    if (!allowedImageTypes.includes(req.file.mimetype)) {
+      throw new BadRequestError("Only PNG or JPG images are allowed");
+    }
+
     const uploadStream = () =>
       new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
-          { folder: "avatars" },
+          { 
+            folder: "avatars",
+            resource_type: "image"
+          },
           (error, result) => (error ? reject(error) : resolve(result))
         );
         streamifier.createReadStream(req.file.buffer).pipe(stream);
@@ -63,8 +73,8 @@ export const UpdateUserCvController = async (req, res, next) => {
       throw new BadRequestError("No file uploaded");
     }
 
-    // Validate file type
-    if (!req.file.mimetype.includes("pdf")) {
+    // Validate file type - allow only PDF
+    if (req.file.mimetype !== "application/pdf") {
       throw new BadRequestError("Only PDF files are allowed");
     }
 
@@ -82,7 +92,7 @@ export const UpdateUserCvController = async (req, res, next) => {
           {
             folder: "cvs",
             public_id: `cv_${userId}`,
-            resource_type: "image",
+            resource_type: "raw",
             format: "pdf",
             type: "upload",
             access_mode: "public",

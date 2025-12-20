@@ -1,10 +1,6 @@
 import Joi from "joi";
 
 export const createContactUsSchemaValidation = Joi.object({
-  slug: Joi.string().lowercase().trim().optional().messages({
-    "string.base": "Slug must be a string",
-    "string.empty": "Slug cannot be empty",
-  }),
   name: Joi.string().min(3).max(100).required().messages({
     "string.base": "Name must be a string",
     "string.empty": "Name is required",

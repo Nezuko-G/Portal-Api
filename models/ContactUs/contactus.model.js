@@ -1,12 +1,6 @@
 import { Schema, model } from "mongoose";
 
 const ContactUsSchema = new Schema({
-  slug: {
-    type: String,
-    unique: true,
-    lowercase: true,
-    trim: true,
-  },
   name: {
     type: String,
     required: true,
