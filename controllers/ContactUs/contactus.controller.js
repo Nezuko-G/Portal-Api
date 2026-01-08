@@ -8,30 +8,33 @@ export const createContactUsController = async (req, res, next) => {
     const data = req.body;
     const conflicts = {};
     if (!data.name) {
-      conflicts.name = "Name is required";
+      conflicts.name = res._t("contact_us.name_required");
     }
     if (!data.email) {
-      conflicts.email = "Email is required";
+      conflicts.email = res._t("contact_us.email_required");
     }
     if (!data.message) {
-      conflicts.message = "Message is required";
+      conflicts.message = res._t("contact_us.message_required");
     }
     if (Object.keys(conflicts).length > 0) {
-      throw new BadRequestError("Validation Error", conflicts);
+      throw new BadRequestError(
+        res._t("contact_us.validation_error"),
+        conflicts
+      );
     }
     const existingContact = await ContactUsModel.findOne({
       email: data.email,
       is_deleted: false,
     });
     if (existingContact) {
-      throw new BadRequestError("Contact message from this email already exists");
+      throw new BadRequestError(res._t("contact_us.already_exists"));
     }
     const newContact = new ContactUsModel({
       ...data,
     });
     await newContact.save();
     res.status(201).json({
-      message: "Contact message created successfully",
+      message: res._t("contact_us.created"),
       data: newContact,
     });
   } catch (error) {
@@ -45,7 +48,7 @@ export const getAllContactUsController = async (req, res, next) => {
       "-__v"
     );
     res.json({
-      message: "Contact messages fetched successfully",
+      message: res._t("contact_us.fetched_all"),
       total: contacts.length,
       data: contacts,
     });
@@ -63,10 +66,10 @@ export const getContactUsByIdController = async (req, res, next) => {
       is_deleted: false,
     }).select("-__v");
     if (!contact) {
-      throw new NotFoundError("Contact message not found");
+      throw new NotFoundError(res._t("contact_us.not_found"));
     }
     res.json({
-      message: "Contact message fetched successfully",
+      message: res._t("contact_us.fetched"),
       data: contact,
     });
   } catch (error) {
