@@ -1,37 +1,61 @@
 import Joi from "joi";
 
-export const createKeywordSchema = Joi.object({
-    word: Joi.object({
-        en: Joi.string().trim().required().messages({
-            "string.base": "Keyword (English) must be a string",
-            "string.empty": "Keyword (English) is required",
-            "any.required": "Keyword (English) is required",
-        }),
-        ar: Joi.string().trim().required().messages({
-            "string.base": "Keyword (Arabic) must be a string",
-            "string.empty": "Keyword (Arabic) is required",
-            "any.required": "Keyword (Arabic) is required",
-        }),
-    }).required().messages({
-        "object.base": "Keyword must be an object with 'en' and 'ar' fields",
-        "any.required": "Keyword is required",
-    }),
-});
+export const createKeywordSchema = (req) => {
+  const t = req.__ || req._t || ((key) => key);
 
-export const updateKeywordSchema = Joi.object({
+  return Joi.object({
     word: Joi.object({
-        en: Joi.string().trim().required().messages({
-            "string.base": "Keyword (English) must be a string",
-            "string.empty": "Keyword (English) cannot be empty",
-            "any.required": "Keyword (English) is required",
+      en: Joi.string()
+        .trim()
+        .required()
+        .messages({
+          "string.base": t("validation.keyword_en_required"),
+          "string.empty": t("validation.keyword_en_required"),
+          "any.required": t("validation.keyword_en_required"),
         }),
-        ar: Joi.string().trim().required().messages({
-            "string.base": "Keyword (Arabic) must be a string",
-            "string.empty": "Keyword (Arabic) cannot be empty",
-            "any.required": "Keyword (Arabic) is required",
+      ar: Joi.string()
+        .trim()
+        .required()
+        .messages({
+          "string.base": t("validation.keyword_ar_required"),
+          "string.empty": t("validation.keyword_ar_required"),
+          "any.required": t("validation.keyword_ar_required"),
         }),
-    }).required().messages({
+    })
+      .required()
+      .messages({
         "object.base": "Keyword must be an object with 'en' and 'ar' fields",
         "any.required": "Keyword is required",
-    }),
-});
+      }),
+  });
+};
+
+export const updateKeywordSchema = (req) => {
+  const t = req.__ || req._t || ((key) => key);
+
+  return Joi.object({
+    word: Joi.object({
+      en: Joi.string()
+        .trim()
+        .required()
+        .messages({
+          "string.base": t("validation.keyword_en_required"),
+          "string.empty": t("validation.keyword_en_required"),
+          "any.required": t("validation.keyword_en_required"),
+        }),
+      ar: Joi.string()
+        .trim()
+        .required()
+        .messages({
+          "string.base": t("validation.keyword_ar_required"),
+          "string.empty": t("validation.keyword_ar_required"),
+          "any.required": t("validation.keyword_ar_required"),
+        }),
+    })
+      .required()
+      .messages({
+        "object.base": "Keyword must be an object with 'en' and 'ar' fields",
+        "any.required": "Keyword is required",
+      }),
+  });
+};
