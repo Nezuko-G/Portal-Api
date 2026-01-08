@@ -11,10 +11,12 @@ export const createCategoryController = async (req, res, next) => {
   try {
     const data = req.body;
 
-    if (!data.name) throw new BadRequestError("Category name is required");
+    if (!data.name) throw new BadRequestError(res._t("category.name_required"));
     if (!JOB_CATEGORIES.includes(data.name))
       throw new BadRequestError(
-        `Category must be one of: ${JOB_CATEGORIES.join(", ")}`
+        res._t("category.invalid_category", {
+          categories: JOB_CATEGORIES.join(", "),
+        })
       );
 
     const existingCategory = await Category.findOne({
@@ -22,7 +24,7 @@ export const createCategoryController = async (req, res, next) => {
       is_deleted: false,
     });
     if (existingCategory)
-      throw new BadRequestError("Category is Already Exist");
+      throw new BadRequestError(res._t("category.already_exists"));
 
     const slug = slugify(data.name);
     const newCategory = new Category({ slug, ...data });
@@ -32,7 +34,7 @@ export const createCategoryController = async (req, res, next) => {
 
     res
       .status(201)
-      .json({ message: "Category created successfully", data: newCategory });
+      .json({ message: res._t("category.created"), data: newCategory });
   } catch (error) {
     next(error);
   }
@@ -45,14 +47,13 @@ export const getAllCategoriesController = async (req, res, next) => {
     if (cachedCategories) return res.json(cachedCategories);
 
     console.log("fetching from db");
-    
 
     const categories = await Category.find({ is_deleted: false }).select(
       "-__v"
     );
 
     const response = {
-      message: "Categories fetched successfully",
+      message: res._t("category.fetched_all"),
       total: categories.length,
       data: categories,
     };
@@ -74,10 +75,10 @@ export const getOneCategoryController = async (req, res, next) => {
       _id: id,
       is_deleted: false,
     }).select("-__v");
-    if (!category) throw new NotFoundError("Category not found");
+    if (!category) throw new NotFoundError(res._t("category.not_found"));
 
     const response = {
-      message: "Category fetched successfully",
+      message: res._t("category.fetched"),
       data: category,
     };
 
@@ -93,16 +94,16 @@ export const deleteCategoryController = async (req, res, next) => {
     validateObjectId(id, "category id");
 
     const category = await Category.findById(id).select("-__v");
-    if (!category) throw new NotFoundError("Category not found");
+    if (!category) throw new NotFoundError(res._t("category.not_found"));
     if (category.is_deleted)
-      throw new BadRequestError("Category is already deleted");
+      throw new BadRequestError(res._t("category.already_deleted"));
 
     category.is_deleted = true;
     await category.save();
 
     cache.del(cacheKey);
 
-    res.json({ message: "Category deleted successfully" });
+    res.json({ message: res._t("category.deleted") });
   } catch (error) {
     next(error);
   }
@@ -114,10 +115,12 @@ export const updateCategoryController = async (req, res, next) => {
     validateObjectId(id, "category id");
 
     if (!req.body || Object.keys(req.body).length === 0)
-      throw new BadRequestError("Update data is required");
+      throw new BadRequestError(res._t("category.update_required"));
     if (req.body.name && !JOB_CATEGORIES.includes(req.body.name))
       throw new BadRequestError(
-        `Category must be one of: ${JOB_CATEGORIES.join(", ")}`
+        res._t("category.invalid_category", {
+          categories: JOB_CATEGORIES.join(", "),
+        })
       );
 
     const updateData = { ...req.body };
@@ -126,11 +129,11 @@ export const updateCategoryController = async (req, res, next) => {
       { $set: updateData },
       { new: true, runValidators: true }
     ).select("-__v");
-    if (!category) throw new NotFoundError("Category not found");
+    if (!category) throw new NotFoundError(res._t("category.not_found"));
 
     cache.del(cacheKey);
 
-    res.json({ message: "Category updated successfully", data: category });
+    res.json({ message: res._t("category.updated"), data: category });
   } catch (error) {
     next(error);
   }

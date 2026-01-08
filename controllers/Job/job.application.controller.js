@@ -17,7 +17,7 @@ export const applyToJobController = async (req, res, next) => {
 
     // Check if user is authenticated
     if (!userId) {
-      throw new UnAuthorizedError("You must be logged in to apply for a job");
+      throw new UnAuthorizedError(res._t("job_application.login_required"));
     }
 
     // Validate job ID
@@ -31,14 +31,12 @@ export const applyToJobController = async (req, res, next) => {
     });
 
     if (!user) {
-      throw new NotFoundError("User not found or inactive");
+      throw new NotFoundError(res._t("job_application.user_not_found"));
     }
 
     // Check if user has uploaded CV
     if (!user.cv) {
-      throw new BadRequestError(
-        "You must upload your CV before applying for jobs"
-      );
+      throw new BadRequestError(res._t("job_application.cv_required"));
     }
 
     // Check if job exists and is active
@@ -49,12 +47,12 @@ export const applyToJobController = async (req, res, next) => {
     });
 
     if (!job) {
-      throw new NotFoundError("Job not found or inactive");
+      throw new NotFoundError(res._t("job_application.job_not_found"));
     }
 
     // Check if job has expired
     if (new Date() > new Date(job.expirationDate)) {
-      throw new BadRequestError("This job posting has expired");
+      throw new BadRequestError(res._t("job_application.job_expired"));
     }
 
     // Check if user has already applied to this job
@@ -65,7 +63,7 @@ export const applyToJobController = async (req, res, next) => {
     });
 
     if (existingApplication) {
-      throw new ConflictError("You have already applied to this job");
+      throw new ConflictError(res._t("job_application.already_applied"));
     }
 
     // Create new job application
@@ -96,7 +94,7 @@ export const applyToJobController = async (req, res, next) => {
       .select("-__v");
 
     res.status(201).json({
-      message: "Application submitted successfully",
+      message: res._t("job_application.created"),
       data: populatedApplication,
     });
   } catch (error) {
@@ -110,7 +108,7 @@ export const getMyApplicationsController = async (req, res, next) => {
     const userId = req.user?.id;
 
     if (!userId) {
-      throw new UnAuthorizedError("You must be logged in");
+      throw new UnAuthorizedError(res._t("job_application.login_required"));
     }
 
     const { status, page = 1, limit = 10 } = req.query;
@@ -145,7 +143,7 @@ export const getMyApplicationsController = async (req, res, next) => {
     const total = await JobApplicationModel.countDocuments(query);
 
     res.json({
-      message: "Applications fetched successfully",
+      message: res._t("job_application.fetched_all"),
       data: applications,
       pagination: {
         total,
@@ -166,7 +164,7 @@ export const getApplicationDetailsController = async (req, res, next) => {
     const userId = req.user?.id;
 
     if (!userId) {
-      throw new UnAuthorizedError("You must be logged in");
+      throw new UnAuthorizedError(res._t("job_application.login_required"));
     }
 
     validateObjectId(id, "application id");
@@ -192,11 +190,11 @@ export const getApplicationDetailsController = async (req, res, next) => {
       .select("-__v");
 
     if (!application) {
-      throw new NotFoundError("Application not found");
+      throw new NotFoundError(res._t("job_application.not_found"));
     }
 
     res.json({
-      message: "Application fetched successfully",
+      message: res._t("job_application.fetched"),
       data: application,
     });
   } catch (error) {
@@ -211,7 +209,7 @@ export const cancelApplicationController = async (req, res, next) => {
     const userId = req.user?.id;
 
     if (!userId) {
-      throw new UnAuthorizedError("You must be logged in");
+      throw new UnAuthorizedError(res._t("job_application.login_required"));
     }
 
     validateObjectId(id, "application id");
@@ -223,13 +221,13 @@ export const cancelApplicationController = async (req, res, next) => {
     });
 
     if (!application) {
-      throw new NotFoundError("Application not found");
+      throw new NotFoundError(res._t("job_application.not_found"));
     }
 
     // Only allow cancellation if application is still pending
     if (application.status !== "pending") {
       throw new BadRequestError(
-        `Cannot cancel application with status: ${application.status}`
+        res._t("job_application.cannot_cancel", { status: application.status })
       );
     }
 
@@ -237,7 +235,7 @@ export const cancelApplicationController = async (req, res, next) => {
     await application.save();
 
     res.json({
-      message: "Application cancelled successfully",
+      message: res._t("job_application.cancelled"),
     });
   } catch (error) {
     next(error);
@@ -259,7 +257,7 @@ export const getJobApplicationsController = async (req, res, next) => {
     });
 
     if (!job) {
-      throw new NotFoundError("Job not found");
+      throw new NotFoundError(res._t("job_application.job_not_found"));
     }
 
     const query = {
@@ -307,7 +305,7 @@ export const getJobApplicationsController = async (req, res, next) => {
     });
 
     res.json({
-      message: "Job applications fetched successfully",
+      message: res._t("job_application.job_applications_fetched"),
       data: applications,
       stats,
       pagination: {
@@ -331,9 +329,7 @@ export const updateApplicationStatusController = async (req, res, next) => {
     validateObjectId(id, "application id");
 
     if (!status || !["pending", "accepted", "rejected"].includes(status)) {
-      throw new BadRequestError(
-        "Invalid status. Must be pending, accepted, or rejected"
-      );
+      throw new BadRequestError(res._t("job_application.invalid_status"));
     }
 
     const application = await JobApplicationModel.findOne({
@@ -342,7 +338,7 @@ export const updateApplicationStatusController = async (req, res, next) => {
     });
 
     if (!application) {
-      throw new NotFoundError("Application not found");
+      throw new NotFoundError(res._t("job_application.not_found"));
     }
 
     application.status = status;
@@ -367,7 +363,7 @@ export const updateApplicationStatusController = async (req, res, next) => {
       .select("-__v");
 
     res.json({
-      message: "Application status updated successfully",
+      message: res._t("job_application.status_updated"),
       data: populatedApplication,
     });
   } catch (error) {
@@ -430,7 +426,7 @@ export const getAllApplicationsController = async (req, res, next) => {
     });
 
     res.json({
-      message: "All applications fetched successfully",
+      message: res._t("job_application.all_applications_fetched"),
       data: applications,
       stats,
       pagination: {

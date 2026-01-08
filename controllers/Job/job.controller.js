@@ -8,7 +8,7 @@ export const createJobController = async (req, res, next) => {
     const data = req.body;
 
     if (!data.title) {
-      throw new BadRequestError("Job title is required");
+      throw new BadRequestError(res._t("job.title_required"));
     }
 
     const slug = slugify(data.title);
@@ -24,7 +24,7 @@ export const createJobController = async (req, res, next) => {
       .select("-__v");
 
     res.status(201).json({
-      message: "Job created successfully",
+      message: res._t("job.created"),
       data: populatedJob,
     });
   } catch (error) {
@@ -102,7 +102,7 @@ export const getAllJobsController = async (req, res, next) => {
     const total = await JobModel.countDocuments(query);
 
     res.json({
-      message: "Jobs fetched successfully",
+      message: res._t("job.fetched_all"),
       data: jobs,
       pagination: {
         total,
@@ -134,11 +134,11 @@ export const getOneJobController = async (req, res, next) => {
       .select("-__v");
 
     if (!job) {
-      throw new NotFoundError("Job not found");
+      throw new NotFoundError(res._t("job.not_found"));
     }
 
     res.json({
-      message: "Job fetched successfully",
+      message: res._t("job.fetched"),
       data: job,
     });
   } catch (error) {
@@ -155,18 +155,18 @@ export const deleteJobController = async (req, res, next) => {
     const job = await JobModel.findById(id).select("-__v");
 
     if (!job) {
-      throw new NotFoundError("Job not found");
+      throw new NotFoundError(res._t("job.not_found"));
     }
 
     if (job.is_deleted) {
-      throw new BadRequestError("Job is already deleted");
+      throw new BadRequestError(res._t("job.already_deleted"));
     }
 
     job.is_deleted = true;
     await job.save();
 
     res.json({
-      message: "Job deleted successfully",
+      message: res._t("job.deleted"),
     });
   } catch (error) {
     next(error);
@@ -180,7 +180,7 @@ export const updateJobController = async (req, res, next) => {
     validateObjectId(id, "job id");
 
     if (!req.body || Object.keys(req.body).length === 0) {
-      throw new BadRequestError("Update data is required");
+      throw new BadRequestError(res._t("job.update_required"));
     }
 
     let updateData = { ...req.body };
@@ -197,11 +197,11 @@ export const updateJobController = async (req, res, next) => {
       .select("-__v");
 
     if (!job) {
-      throw new NotFoundError("Job not found");
+      throw new NotFoundError(res._t("job.not_found"));
     }
 
     res.json({
-      message: "Job updated successfully",
+      message: res._t("job.updated"),
       data: job,
     });
   } catch (error) {
@@ -212,18 +212,18 @@ export const updateJobController = async (req, res, next) => {
 export const toggleJobActivationController = async (req, res) => {
   const { id } = req.params;
   if (!id) {
-    return res.status(400).json({ message: "Job ID is required" });
+    return res.status(400).json({ message: res._t("job.title_required") });
   }
   const job = await JobModel.findById(id);
   if (!job) {
-    return res.status(404).json({ message: "Job not found" });
+    return res.status(404).json({ message: res._t("job.not_found") });
   }
   job.is_active = !job.is_active;
   await job.save();
   return res.json({
-    message: `Job has been ${
-      job.is_active ? "activated" : "deactivated"
-    } successfully`,
+    message: job.is_active
+      ? res._t("job.activated")
+      : res._t("job.deactivated"),
     data: job,
   });
 };
