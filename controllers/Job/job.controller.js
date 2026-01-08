@@ -46,41 +46,34 @@ export const getAllJobsController = async (req, res, next) => {
       workMode,
     } = req.query;
 
-    // Build query
     const query = {
       is_deleted: false,
       is_active: true,
     };
 
-    // Filter by country
     if (country) {
       validateObjectId(country, "country id");
       query.country = country;
     }
 
-    // Filter by fieldOfWork (category)
     if (fieldOfWork) {
       validateObjectId(fieldOfWork, "field of work id");
       query.fieldOfWork = fieldOfWork;
     }
 
-    // Filter by experience level
     if (experienceLevel) {
       validateObjectId(experienceLevel, "experience level id");
       query.experienceLevel = experienceLevel;
     }
 
-    // Filter by job type
     if (jobType && ["full-time", "part-time", "internship"].includes(jobType)) {
       query.jobType = jobType;
     }
 
-    // Filter by work mode
     if (workMode && ["office", "remote", "hybrid"].includes(workMode)) {
       query.workMode = workMode;
     }
 
-    // Search in title, company, or description
     if (search) {
       query.$or = [
         { title: { $regex: search, $options: "i" } },
@@ -89,7 +82,6 @@ export const getAllJobsController = async (req, res, next) => {
       ];
     }
 
-    // Filter by keyword (if searching by keyword ObjectId)
     if (keyword) {
       validateObjectId(keyword, "keyword id");
       query.keywords = keyword;
