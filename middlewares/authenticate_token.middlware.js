@@ -4,26 +4,31 @@ import { UnAuthorizedError } from "../Errors/error.js";
 
 export const authenticateToken = async (req, res, next) => {
   try {
+    const authHeader = req.headers.authorization;
     const token = req.cookies.jwt
       ? req.cookies.jwt
-      : authHeader.startsWith("Bearer ")
+      : authHeader && authHeader.startsWith("Bearer ")
       ? authHeader.split(" ")[1]
       : null;
 
     if (!token) {
-      throw new UnAuthorizedError("Token Not provided");
+      throw new UnAuthorizedError(res._t("middleware.token_not_provided"));
     }
 
     const decodedToken = verifyToken(token);
 
     if (!decodedToken || !decodedToken.id) {
-      throw new UnAuthorizedError("Invalid or expired Token");
+      throw new UnAuthorizedError(
+        res._t("middleware.invalid_or_expired_token")
+      );
     }
 
     const user = await User.findById(decodedToken.id);
 
     if (!user) {
-      throw new UnAuthorizedError("Invalid or expired Token");
+      throw new UnAuthorizedError(
+        res._t("middleware.invalid_or_expired_token")
+      );
     }
 
     req.user = user;
