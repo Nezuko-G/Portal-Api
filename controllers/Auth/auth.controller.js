@@ -225,17 +225,10 @@ export const ForgotPasswordController = async (req, res, next) => {
 
     await user.save({ validateBeforeSave: false });
 
-    const emailMessage = `
-      <h2>Password Reset Request</h2>
-      <p>Hi ${user.name},</p>
-      <p>You requested to reset your password. Please use the following verification code:</p>
-      <h1 style="color: #4CAF50; font-size: 32px; letter-spacing: 5px;">${resetCode}</h1>
-      <p>This code will expire in 30 minutes.</p>
-      <p>If you didn't request this, please ignore this email.</p>
-    `;
-
     try {
-      const emailSender = new Email(user);
+      // Get locale from request (defaulting to 'en')
+      const locale = req.getLocale() || "en";
+      const emailSender = new Email(user, locale);
       await emailSender.sendPasswordResetCode(resetCode);
 
       res.status(200).json({
