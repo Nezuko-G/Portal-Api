@@ -11,11 +11,11 @@ export const GetUserProfileController = async (req, res, next) => {
     const user = await User.findById(userId).select("-password");
 
     if (!user) {
-      throw new NotFoundError("User not found");
+      throw new NotFoundError(res._t("job_application.user_not_found"));
     }
 
     res.status(200).json({
-      message: "User profile fetched successfully",
+      message: res._t("user.profile_fetched"),
       user,
     });
   } catch (error) {
@@ -28,22 +28,22 @@ export const UpdateUserAvatarController = async (req, res, next) => {
 
   try {
     if (!req.file) {
-      throw new BadRequestError("No image uploaded");
+      throw new BadRequestError(res._t("user.no_image_uploaded"));
     }
 
     // Validate image type - allow only PNG and JPG
     const allowedImageTypes = ["image/png", "image/jpeg", "image/jpg"];
-    
+
     if (!allowedImageTypes.includes(req.file.mimetype)) {
-      throw new BadRequestError("Only PNG or JPG images are allowed");
+      throw new BadRequestError(res._t("user.invalid_image_type"));
     }
 
     const uploadStream = () =>
       new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
-          { 
+          {
             folder: "avatars",
-            resource_type: "image"
+            resource_type: "image",
           },
           (error, result) => (error ? reject(error) : resolve(result))
         );
@@ -57,7 +57,7 @@ export const UpdateUserAvatarController = async (req, res, next) => {
     });
 
     return res.status(200).json({
-      message: "Avatar updated successfully",
+      message: res._t("user.avatar_updated"),
       avatar: result.secure_url,
     });
   } catch (error) {
@@ -70,12 +70,12 @@ export const UpdateUserCvController = async (req, res, next) => {
 
   try {
     if (!req.file) {
-      throw new BadRequestError("No file uploaded");
+      throw new BadRequestError(res._t("user.no_file_uploaded"));
     }
 
     // Validate file type - allow only PDF
     if (req.file.mimetype !== "application/pdf") {
-      throw new BadRequestError("Only PDF files are allowed");
+      throw new BadRequestError(res._t("user.invalid_file_type"));
     }
 
     console.log("Uploading CV:", {
@@ -119,7 +119,7 @@ export const UpdateUserCvController = async (req, res, next) => {
     });
 
     res.status(200).json({
-      message: "CV updated successfully",
+      message: res._t("user.cv_updated"),
       cv: result.secure_url,
       public_id: result.public_id,
     });
