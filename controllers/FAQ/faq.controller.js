@@ -10,13 +10,13 @@ export const createFAQController = async (req, res, next) => {
     const conflicts = {};
 
     if (!data.question) {
-      conflicts.question = "Question is required";
+      conflicts.question = res._t("faq.question_required");
     }
     if (!data.answer) {
-      conflicts.answer = "Answer is required";
+      conflicts.answer = res._t("faq.answer_required");
     }
     if (Object.keys(conflicts).length > 0) {
-      throw new BadRequestError("Validation Error", conflicts);
+      throw new BadRequestError(res._t("faq.validation_error"), conflicts);
     }
 
     const existingFAQ = await FAQModel.findOne({
@@ -24,7 +24,7 @@ export const createFAQController = async (req, res, next) => {
       is_deleted: false,
     });
     if (existingFAQ) {
-      throw new BadRequestError("FAQ with this question already exists");
+      throw new BadRequestError(res._t("faq.already_exists"));
     }
 
     const slug = slugify(data.question);
@@ -38,7 +38,7 @@ export const createFAQController = async (req, res, next) => {
     cache.del("faqs");
 
     res.status(201).json({
-      message: "FAQ created successfully",
+      message: res._t("faq.created"),
       data: newFAQ,
     });
   } catch (error) {
@@ -52,7 +52,7 @@ export const getAllFAQController = async (req, res, next) => {
 
     if (cachedFaqs) {
       return res.json({
-        message: "FAQs fetched successfully (from cache)",
+        message: res._t("faq.fetched_from_cache"),
         total: cachedFaqs.length,
         data: cachedFaqs,
       });
@@ -65,7 +65,7 @@ export const getAllFAQController = async (req, res, next) => {
     cache.set("faqs", faqs);
 
     res.json({
-      message: "FAQs fetched successfully",
+      message: res._t("faq.fetched_all"),
       total: faqs.length,
       data: faqs,
     });
@@ -83,10 +83,10 @@ export const getFAQByIdController = async (req, res, next) => {
       is_deleted: false,
     }).select("-__v");
     if (!faq) {
-      throw new NotFoundError("FAQ not found");
+      throw new NotFoundError(res._t("faq.not_found"));
     }
     res.json({
-      message: "FAQ fetched successfully",
+      message: res._t("faq.fetched"),
       data: faq,
     });
   } catch (error) {
@@ -102,13 +102,13 @@ export const updateFAQController = async (req, res, next) => {
     const conflicts = {};
 
     if (data.question === "") {
-      conflicts.question = "Question cannot be empty";
+      conflicts.question = res._t("faq.question_empty");
     }
     if (data.answer === "") {
-      conflicts.answer = "Answer cannot be empty";
+      conflicts.answer = res._t("faq.answer_empty");
     }
     if (Object.keys(conflicts).length > 0) {
-      throw new BadRequestError("Validation Error", conflicts);
+      throw new BadRequestError(res._t("faq.validation_error"), conflicts);
     }
     const faq = await FAQModel.findOne({
       _id: faqId,
@@ -116,7 +116,7 @@ export const updateFAQController = async (req, res, next) => {
     });
 
     if (!faq) {
-      throw new NotFoundError("FAQ not found");
+      throw new NotFoundError(res._t("faq.not_found"));
     }
     if (data.question && data.question !== faq.question) {
       const existingFAQ = await FAQModel.findOne({
@@ -125,7 +125,7 @@ export const updateFAQController = async (req, res, next) => {
       });
 
       if (existingFAQ) {
-        throw new BadRequestError("FAQ with this question already exists");
+        throw new BadRequestError(res._t("faq.already_exists"));
       }
       faq.slug = slugify(data.question);
     }
@@ -136,7 +136,7 @@ export const updateFAQController = async (req, res, next) => {
     cache.del("faqs");
 
     res.json({
-      message: "FAQ updated successfully",
+      message: res._t("faq.updated"),
       data: faq,
     });
   } catch (error) {
@@ -154,7 +154,7 @@ export const deleteFAQController = async (req, res, next) => {
       is_deleted: false,
     });
     if (!faq) {
-      throw new NotFoundError("FAQ not found");
+      throw new NotFoundError(res._t("faq.not_found"));
     }
 
     faq.is_deleted = true;
@@ -163,7 +163,7 @@ export const deleteFAQController = async (req, res, next) => {
     cache.del("faqs");
 
     res.json({
-      message: "FAQ deleted successfully",
+      message: res._t("faq.deleted"),
     });
   } catch (error) {
     next(error);
