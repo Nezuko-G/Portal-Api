@@ -2,6 +2,9 @@ import { Country } from "../../models/Country/country.model.js";
 import { BadRequestError, NotFoundError } from "../../Errors/error.js";
 import { validateObjectId } from "../../utils/validateObjectId.js";
 import { getCountryByName } from "../../utils/countries-data.js";
+import { cache } from "../../config/cache.js";
+
+const cacheKey = "countries";
 
 /***
    Create Country
@@ -45,6 +48,8 @@ export const createCountryController = async (req, res, next) => {
     const newCountry = new Country({ name, code, cities });
     await newCountry.save();
 
+    cache.del(cacheKey);
+
     res.status(201).json({
       message: res._t("country.created"),
       country: newCountry,
@@ -59,40 +64,33 @@ export const createCountryController = async (req, res, next) => {
 ***/
 export const getAllCountriesController = async (req, res, next) => {
   try {
-    const page = Math.max(parseInt(req.query.page) || 1, 1);
-    const limit = Math.max(parseInt(req.query.limit) || 10, 1);
-    const skip = (page - 1) * limit;
+    const cachedCountries = cache.get(cacheKey);
 
-    const allowedSortFields = ["name", "createdAt", "updatedAt"];
-    const sortBy = allowedSortFields.includes(req.query.sort)
-      ? req.query.sort
-      : "createdAt";
-    const sortOrder = req.query.order === "asc" ? 1 : -1;
+    if (cachedCountries) {
+      return res.json(cachedCountries);
+    }
+
+    console.log("fetching from db");
 
     const [countries, total] = await Promise.all([
-      Country.find({ is_deleted: false })
-        .skip(skip)
-        .limit(limit)
-        .sort({ [sortBy]: sortOrder })
-        .select("name code cities createdAt updatedAt"),
+      Country.find({ is_deleted: false }).select(
+        "name code cities createdAt updatedAt"
+      ),
       Country.countDocuments({ is_deleted: false }),
     ]);
 
-    if (countries.length === 0) {
-      return res.json({
-        message: res._t("country.no_countries"),
-        total,
-        countries: [],
-      });
-    }
-
-    res.json({
-      message: res._t("country.fetched_all"),
+    const response = {
+      message:
+        countries.length === 0
+          ? res._t("country.no_countries")
+          : res._t("country.fetched_all"),
       total,
-      page,
-      limit,
       countries,
-    });
+    };
+
+    cache.set(cacheKey, response);
+
+    res.json(response);
   } catch (error) {
     next(error);
   }
@@ -147,6 +145,8 @@ export const deleteCountryController = async (req, res, next) => {
     country.is_deleted = true;
     await country.save();
 
+    cache.del(cacheKey);
+
     res.json({
       message: res._t("country.deleted"),
     });
@@ -177,6 +177,8 @@ export const updateCountryController = async (req, res, next) => {
     if (!country) {
       throw new NotFoundError(res._t("country.not_found"));
     }
+
+    cache.del(cacheKey);
 
     res.json({
       message: res._t("country.updated"),
