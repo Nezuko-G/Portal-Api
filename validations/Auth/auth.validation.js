@@ -2,138 +2,191 @@ import Joi from "joi";
 import { ROLES, DEFAULT_ROLE } from "../../utils/constants.js";
 
 // Signup
-export const SignUpSchema = Joi.object({
-  name: Joi.string().min(2).max(100).trim().required().messages({
-    "string.base": "Name must be a string",
-    "string.empty": "Name is required",
-    "string.min": "Name must be at least 2 characters",
-    "string.max": "Name must be less than or equal to 100 characters",
-    "any.required": "Name is required",
-  }),
+export const SignUpSchema = (req) => {
+  const t = req.__ || req._t || ((key) => key);
 
-  email: Joi.string().email().trim().lowercase().required().messages({
-    "string.email": "Email must be a valid email",
-    "string.empty": "Email is required",
-    "any.required": "Email is required",
-  }),
+  return Joi.object({
+    name: Joi.string()
+      .min(2)
+      .max(100)
+      .trim()
+      .required()
+      .messages({
+        "string.base": t("validation.name_required"),
+        "string.empty": t("validation.name_required"),
+        "string.min": t("validation.name_min"),
+        "string.max": t("validation.name_max"),
+        "any.required": t("validation.name_required"),
+      }),
 
-  phone: Joi.string()
-    .pattern(/^01[0125][0-9]{8}$/)
-    .trim()
-    .required()
-    .messages({
-      "string.base": "Phone must be a string",
-      "string.pattern.base":
-        "Phone must be a valid Egyptian phone number (e.g., 01012345678)",
-      "string.empty": "Phone is required",
-      "any.required": "Phone is required",
-    }),
-  password: Joi.string()
-    .min(8)
-    .max(40)
-    .pattern(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]/
-    )
-    .required()
-    .messages({
-      "string.min": "Password must be at least 8 characters",
-      "string.max": "Password must be less than or equal to 40 characters",
-      "string.pattern.base":
-        "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&#)",
-      "string.empty": "Password is required",
-      "any.required": "Password is required",
-    }),
+    email: Joi.string()
+      .email()
+      .trim()
+      .lowercase()
+      .required()
+      .messages({
+        "string.email": t("validation.email_invalid"),
+        "string.empty": t("validation.email_required"),
+        "any.required": t("validation.email_required"),
+      }),
 
-  role: Joi.string()
-    .valid(...ROLES)
-    .default(DEFAULT_ROLE)
-    .messages({
-      "any.only": "Role must be either 'user' or 'admin'",
-      "string.base": "Role must be a string",
-    }),
-});
+    phone: Joi.string()
+      .pattern(/^01[0125][0-9]{8}$/)
+      .trim()
+      .required()
+      .messages({
+        "string.base": t("validation.phone_required"),
+        "string.pattern.base": t("validation.phone_invalid"),
+        "string.empty": t("validation.phone_required"),
+        "any.required": t("validation.phone_required"),
+      }),
+    password: Joi.string()
+      .min(8)
+      .max(40)
+      .pattern(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]/
+      )
+      .required()
+      .messages({
+        "string.min": t("validation.password_min"),
+        "string.max": t("validation.password_max"),
+        "string.pattern.base": t("validation.password_pattern"),
+        "string.empty": t("validation.password_required"),
+        "any.required": t("validation.password_required"),
+      }),
+
+    role: Joi.string()
+      .valid(...ROLES)
+      .default(DEFAULT_ROLE)
+      .messages({
+        "any.only": t("validation.role_invalid"),
+        "string.base": t("validation.role_invalid"),
+      }),
+  });
+};
 
 // login
-export const LoginSchema = Joi.object({
-  email: Joi.string().email().trim().lowercase().required().messages({
-    "string.empty": "Email is required",
-    "string.email": "Please enter a valid email",
-    "any.required": "Email is mandatory",
-  }),
-  password: Joi.string().min(8).required().messages({
-    "string.empty": "Password is required",
-    "string.min": "Password must be at least 8 characters",
-    "any.required": "Password is mandatory",
-  }),
-});
+export const LoginSchema = (req) => {
+  const t = req.__ || req._t || ((key) => key);
+
+  return Joi.object({
+    email: Joi.string()
+      .email()
+      .trim()
+      .lowercase()
+      .required()
+      .messages({
+        "string.empty": t("validation.email_required"),
+        "string.email": t("validation.email_invalid"),
+        "any.required": t("validation.email_required"),
+      }),
+    password: Joi.string()
+      .min(8)
+      .required()
+      .messages({
+        "string.empty": t("validation.password_required"),
+        "string.min": t("validation.password_min"),
+        "any.required": t("validation.password_required"),
+      }),
+  });
+};
 
 // Forget Password
-export const ForgotPasswordSchema = Joi.object({
-  email: Joi.string().email().trim().lowercase().required().messages({
-    "string.email": "Email must be a valid email",
-    "string.empty": "Email is required",
-    "any.required": "Email is required",
-  }),
-});
+export const ForgotPasswordSchema = (req) => {
+  const t = req.__ || req._t || ((key) => key);
+
+  return Joi.object({
+    email: Joi.string()
+      .email()
+      .trim()
+      .lowercase()
+      .required()
+      .messages({
+        "string.email": t("validation.email_invalid"),
+        "string.empty": t("validation.email_required"),
+        "any.required": t("validation.email_required"),
+      }),
+  });
+};
 
 // Verify Reset Code
-export const VerifyResetCodeSchema = Joi.object({
-  email: Joi.string().email().trim().lowercase().required().messages({
-    "string.email": "Email must be a valid email",
-    "string.empty": "Email is required",
-    "any.required": "Email is required",
-  }),
+export const VerifyResetCodeSchema = (req) => {
+  const t = req.__ || req._t || ((key) => key);
 
-  code: Joi.string()
-    .length(6)
-    .pattern(/^[0-9]+$/)
-    .required()
-    .messages({
-      "string.length": "Verification code must be 6 digits",
-      "string.pattern.base": "Verification code must contain only numbers",
-      "string.empty": "Verification code is required",
-      "any.required": "Verification code is required",
-    }),
-});
+  return Joi.object({
+    email: Joi.string()
+      .email()
+      .trim()
+      .lowercase()
+      .required()
+      .messages({
+        "string.email": t("validation.email_invalid"),
+        "string.empty": t("validation.email_required"),
+        "any.required": t("validation.email_required"),
+      }),
+
+    code: Joi.string()
+      .length(6)
+      .pattern(/^[0-9]+$/)
+      .required()
+      .messages({
+        "string.length": t("validation.code_length"),
+        "string.pattern.base": t("validation.code_pattern"),
+        "string.empty": t("validation.code_length"),
+        "any.required": t("validation.code_length"),
+      }),
+  });
+};
 
 // Reset Password
-export const ResetPasswordSchema = Joi.object({
-  email: Joi.string().email().trim().lowercase().required().messages({
-    "string.email": "Email must be a valid email",
-    "string.empty": "Email is required",
-    "any.required": "Email is required",
-  }),
+export const ResetPasswordSchema = (req) => {
+  const t = req.__ || req._t || ((key) => key);
 
-  code: Joi.string()
-    .length(6)
-    .pattern(/^[0-9]+$/)
-    .required()
-    .messages({
-      "string.length": "Verification code must be 6 digits",
-      "string.pattern.base": "Verification code must contain only numbers",
-      "string.empty": "Verification code is required",
-      "any.required": "Verification code is required",
-    }),
+  return Joi.object({
+    email: Joi.string()
+      .email()
+      .trim()
+      .lowercase()
+      .required()
+      .messages({
+        "string.email": t("validation.email_invalid"),
+        "string.empty": t("validation.email_required"),
+        "any.required": t("validation.email_required"),
+      }),
 
-  password: Joi.string()
-    .min(8)
-    .max(40)
-    .pattern(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]/
-    )
-    .required()
-    .messages({
-      "string.min": "Password must be at least 8 characters",
-      "string.max": "Password must be less than or equal to 40 characters",
-      "string.pattern.base":
-        "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&#)",
-      "string.empty": "Password is required",
-      "any.required": "Password is required",
-    }),
+    code: Joi.string()
+      .length(6)
+      .pattern(/^[0-9]+$/)
+      .required()
+      .messages({
+        "string.length": t("validation.code_length"),
+        "string.pattern.base": t("validation.code_pattern"),
+        "string.empty": t("validation.code_length"),
+        "any.required": t("validation.code_length"),
+      }),
 
-  confirmPassword: Joi.string().valid(Joi.ref("password")).required().messages({
-    "any.only": "Passwords do not match",
-    "string.empty": "Confirm password is required",
-    "any.required": "Confirm password is required",
-  }),
-});
+    password: Joi.string()
+      .min(8)
+      .max(40)
+      .pattern(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]/
+      )
+      .required()
+      .messages({
+        "string.min": t("validation.password_min"),
+        "string.max": t("validation.password_max"),
+        "string.pattern.base": t("validation.password_pattern"),
+        "string.empty": t("validation.password_required"),
+        "any.required": t("validation.password_required"),
+      }),
+
+    confirmPassword: Joi.string()
+      .valid(Joi.ref("password"))
+      .required()
+      .messages({
+        "any.only": t("validation.passwords_mismatch"),
+        "string.empty": t("validation.confirm_password_required"),
+        "any.required": t("validation.confirm_password_required"),
+      }),
+  });
+};
