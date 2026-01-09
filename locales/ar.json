@@ -196,7 +196,7 @@
     "password_reset_title": "طلب إعادة تعيين كلمة المرور",
     "password_reset_greeting": "مرحباً {{name}}،",
     "password_reset_message": "لقد طلبت إعادة تعيين كلمة المرور. يرجى استخدام رمز التحقق التالي:",
-    "password_reset_expiry": "⚠️ سينتهي هذا الرمز خلال 10 دقائق.",
+    "password_reset_expiry": " سينتهي هذا الرمز خلال 10 دقائق.",
     "password_reset_ignore": "إذا لم تطلب ذلك، يرجى تجاهل هذا البريد الإلكتروني.",
     "password_reset_regards": "أطيب التحيات،<br>فريق التطبيق"
   },

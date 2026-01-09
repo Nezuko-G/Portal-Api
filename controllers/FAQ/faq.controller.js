@@ -1,4 +1,4 @@
-import { FAQModel } from "../../models/FAQ/faq.model.js";
+import { Faq } from "../../models/FAQ/faq.model.js";
 import { BadRequestError, NotFoundError } from "../../Errors/error.js";
 import { validateObjectId } from "../../utils/validateObjectId.js";
 import { slugify } from "../../utils/helpers.js";
@@ -60,7 +60,7 @@ export const getAllFAQController = async (req, res, next) => {
 
     // console.log("Fetching from DB")
 
-    const faqs = await FAQModel.find({ is_deleted: false }).select("-__v");
+    const faqs = await Faq.find({ is_deleted: false }).select("-__v");
 
     cache.set("faqs", faqs);
 
@@ -78,13 +78,16 @@ export const getFAQByIdController = async (req, res, next) => {
   try {
     const faqId = req.params.id;
     validateObjectId(faqId);
-    const faq = await FAQModel.findOne({
+
+    const faq = await Faq.findOne({
       _id: faqId,
       is_deleted: false,
     }).select("-__v");
+
     if (!faq) {
       throw new NotFoundError(res._t("faq.not_found"));
     }
+
     res.json({
       message: res._t("faq.fetched"),
       data: faq,
@@ -99,6 +102,7 @@ export const updateFAQController = async (req, res, next) => {
     const faqId = req.params.id;
     validateObjectId(faqId);
     const data = req.body;
+
     const conflicts = {};
 
     if (data.question === "") {
@@ -110,7 +114,8 @@ export const updateFAQController = async (req, res, next) => {
     if (Object.keys(conflicts).length > 0) {
       throw new BadRequestError(res._t("faq.validation_error"), conflicts);
     }
-    const faq = await FAQModel.findOne({
+
+    const faq = await Faq.findOne({
       _id: faqId,
       is_deleted: false,
     });
@@ -118,8 +123,9 @@ export const updateFAQController = async (req, res, next) => {
     if (!faq) {
       throw new NotFoundError(res._t("faq.not_found"));
     }
+
     if (data.question && data.question !== faq.question) {
-      const existingFAQ = await FAQModel.findOne({
+      const existingFAQ = await Faq.findOne({
         question: data.question,
         is_deleted: false,
       });
@@ -127,7 +133,6 @@ export const updateFAQController = async (req, res, next) => {
       if (existingFAQ) {
         throw new BadRequestError(res._t("faq.already_exists"));
       }
-      faq.slug = slugify(data.question);
     }
 
     Object.assign(faq, data);
@@ -149,7 +154,7 @@ export const deleteFAQController = async (req, res, next) => {
     const faqId = req.params.id;
     validateObjectId(faqId);
 
-    const faq = await FAQModel.findOne({
+    const faq = await Faq.findOne({
       _id: faqId,
       is_deleted: false,
     });

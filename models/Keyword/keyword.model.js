@@ -30,4 +30,4 @@ const KeywordSchema = new Schema(
   }
 );
 
-export const KeywordModel = model("Keyword", KeywordSchema);
+export const Keyword = model("Keyword", KeywordSchema);

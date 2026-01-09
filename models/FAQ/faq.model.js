@@ -1,12 +1,6 @@
-import { Schema, model } from "mongoose";
+import { Schema, model ,mongoose} from "mongoose";
 
 const FAQSchema = new Schema({
-  slug: {
-    type: String,
-    unique: true,
-    lowercase: true,
-    trim: true,
-  },
   question: {
     type: String,
     required: true,
@@ -27,6 +21,6 @@ const FAQSchema = new Schema({
   },
 });
 
-FAQSchema.index({is_deleted: 1});
+FAQSchema.index({ is_deleted: 1 });
 
-export const FAQModel = model("FAQ", FAQSchema);
+export const Faq = mongoose.model("Faq", FAQSchema);

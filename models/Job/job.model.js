@@ -52,4 +52,4 @@ const JobSchema = new Schema(
   { timestamps: true }
 );
 
-export const JobModel = model("JobModel", JobSchema);
+export const Job = model("Job", JobSchema);
