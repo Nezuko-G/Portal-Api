@@ -19,25 +19,25 @@ const router = Router();
 // Admin Routes
 router.post(
   "/",
-  // authenticateToken,
-  // checkRole(["admin"]),
+  authenticateToken,
+  checkRole(["admin"]),
   validate(createCountrySchema),
-  createCountryController
+  createCountryController,
 );
 
 router.delete(
   "/:id",
-  // authenticateToken,
-  // checkRole(["admin"]),
-  deleteCountryController
+  authenticateToken,
+  checkRole(["admin"]),
+  deleteCountryController,
 );
 
 router.patch(
   "/:id",
-  // authenticateToken,
-  // checkRole(["admin"]),
+  authenticateToken,
+  checkRole(["admin"]),
   validate(updateCountrySchema),
-  updateCountryController
+  updateCountryController,
 );
 
 // User Routes
