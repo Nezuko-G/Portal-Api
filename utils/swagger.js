@@ -1,17 +1,21 @@
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 
+const apiBaseUrl =
+  process.env.SWAGGER_SERVER_URL ||
+  `http://localhost:${process.env.PORT || 3000}`;
+
 const options = {
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "PharmaXpress API",
+      title: "Nezuko Portal API",
       version: "1.0.0",
-      description: "API documentation for PharmaXpress project",
+      description: "API documentation for the Nezuko job portal backend.",
     },
     servers: [
       {
-        url: "http://localhost:4000",
+        url: apiBaseUrl,
       },
     ],
     components: {
@@ -25,10 +29,8 @@ const options = {
     },
     security: [{ bearerAuth: [] }],
   },
-  apis: ["./docs/**/*.js"], 
-
-}
-
+  apis: ["./docs/**/*.js"],
+};
 
 const swaggerSpec = swaggerJsdoc(options);
 
