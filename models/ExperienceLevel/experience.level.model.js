@@ -37,7 +37,7 @@ const ExperienceLevelSchema = new Schema(
   }
 );
 
-export const ExperienceLevel = model(
+export const ExperienceLevelModel = model(
   "ExperienceLevel",
   ExperienceLevelSchema
 );

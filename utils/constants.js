@@ -24,3 +24,5 @@ export const JOB_CATEGORIES = [
   "Education & Training",
   "Logistics & Transportation",
 ];
+
+
