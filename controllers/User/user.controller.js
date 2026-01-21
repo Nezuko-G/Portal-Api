@@ -1,9 +1,9 @@
-import { NotFoundError, BadRequestError } from "../../Errors/error.js";
+import { NotFoundError, BadRequestError } from "../../utils/error.js";
 import User from "../../models/User/user.model.js";
 import cloudinary from "../../config/cloudinary.js";
 import streamifier from "streamifier";
-import path from "path";
 
+// Get the logged-in user's profile
 export const GetUserProfileController = async (req, res, next) => {
   try {
     const userId = req.user._id;
@@ -23,40 +23,39 @@ export const GetUserProfileController = async (req, res, next) => {
   }
 };
 
-export const UpdateUserAvatarController = async (req, res, next) => {
-  const userId = req.user._id;
+// Helper to upload file to Cloudinary
+const uploadToCloudinary = (buffer, folder, options = {}) => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder, ...options },
+      (error, result) => (error ? reject(error) : resolve(result))
+    );
+    streamifier.createReadStream(buffer).pipe(stream);
+  });
+};
 
+// Update user's avatar
+export const UpdateUserAvatarController = async (req, res, next) => {
   try {
+    const userId = req.user._id;
+
     if (!req.file) {
       throw new BadRequestError(res._t("user.no_image_uploaded"));
     }
 
-    // Validate image type - allow only PNG and JPG
+    // Allow only PNG/JPG images
     const allowedImageTypes = ["image/png", "image/jpeg", "image/jpg"];
-
     if (!allowedImageTypes.includes(req.file.mimetype)) {
       throw new BadRequestError(res._t("user.invalid_image_type"));
     }
 
-    const uploadStream = () =>
-      new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-          {
-            folder: "avatars",
-            resource_type: "image",
-          },
-          (error, result) => (error ? reject(error) : resolve(result))
-        );
-        streamifier.createReadStream(req.file.buffer).pipe(stream);
-      });
-
-    const result = await uploadStream();
-
-    await User.findByIdAndUpdate(userId, {
-      avatar: result.secure_url,
+    const result = await uploadToCloudinary(req.file.buffer, "avatars", {
+      resource_type: "image",
     });
 
-    return res.status(200).json({
+    await User.findByIdAndUpdate(userId, { avatar: result.secure_url });
+
+    res.status(200).json({
       message: res._t("user.avatar_updated"),
       avatar: result.secure_url,
     });
@@ -65,58 +64,29 @@ export const UpdateUserAvatarController = async (req, res, next) => {
   }
 };
 
+// Update user's CV
 export const UpdateUserCvController = async (req, res, next) => {
-  const userId = req.user._id;
-
   try {
+    const userId = req.user._id;
+
     if (!req.file) {
       throw new BadRequestError(res._t("user.no_file_uploaded"));
     }
 
-    // Validate file type - allow only PDF
+    // Allow only PDF files
     if (req.file.mimetype !== "application/pdf") {
       throw new BadRequestError(res._t("user.invalid_file_type"));
     }
 
-    console.log("Uploading CV:", {
-      userId,
-      filename: req.file.originalname,
-      size: req.file.size,
-      mimetype: req.file.mimetype,
+    const result = await uploadToCloudinary(req.file.buffer, "cvs", {
+      public_id: `cv_${userId}`,
+      resource_type: "raw",
+      format: "pdf",
+      type: "upload",
+      access_mode: "public",
     });
 
-    // Upload to Cloudinary using buffer from multer
-    const uploadStream = () =>
-      new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-          {
-            folder: "cvs",
-            public_id: `cv_${userId}`,
-            resource_type: "raw",
-            format: "pdf",
-            type: "upload",
-            access_mode: "public",
-          },
-          (error, result) => {
-            if (error) {
-              console.error("Cloudinary error:", error);
-              return reject(error);
-            }
-            console.log("Upload successful:", result.secure_url);
-            resolve(result);
-          }
-        );
-
-        // Pipe the buffer to cloudinary
-        streamifier.createReadStream(req.file.buffer).pipe(stream);
-      });
-
-    const result = await uploadStream();
-
-    // Update user with CV URL
-    await User.findByIdAndUpdate(userId, {
-      cv: result.secure_url,
-    });
+    await User.findByIdAndUpdate(userId, { cv: result.secure_url });
 
     res.status(200).json({
       message: res._t("user.cv_updated"),

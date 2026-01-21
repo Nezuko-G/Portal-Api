@@ -1,14 +1,12 @@
 import { Country } from "../../models/Country/country.model.js";
-import { BadRequestError, NotFoundError } from "../../Errors/error.js";
+import { BadRequestError, NotFoundError } from "../../utils/error.js";
 import { validateObjectId } from "../../utils/validateObjectId.js";
 import { getCountryByName } from "../../utils/countries-data.js";
 import { cache } from "../../config/cache.js";
 
 const cacheKey = "countries";
 
-/***
-   Create Country
-***/
+// Create a new country
 export const createCountryController = async (req, res, next) => {
   try {
     const { name, code, cities } = req.body;
@@ -18,7 +16,6 @@ export const createCountryController = async (req, res, next) => {
     }
 
     const countryInfo = getCountryByName(name);
-
     if (!countryInfo) {
       throw new BadRequestError(res._t("country.invalid_name"));
     }
@@ -36,11 +33,7 @@ export const createCountryController = async (req, res, next) => {
       throw new BadRequestError(res._t("country.duplicate_cities"));
     }
 
-    const existingCountry = await Country.findOne({
-      name,
-      is_deleted: false,
-    });
-
+    const existingCountry = await Country.findOne({ name, is_deleted: false });
     if (existingCountry) {
       throw new BadRequestError(res._t("country.already_exists"));
     }
@@ -59,22 +52,17 @@ export const createCountryController = async (req, res, next) => {
   }
 };
 
-/***
-   Get All Countries
-***/
+// Get all countries with caching
 export const getAllCountriesController = async (req, res, next) => {
   try {
     const cachedCountries = cache.get(cacheKey);
-
-    if (cachedCountries) {
-      return res.json(cachedCountries);
-    }
+    if (cachedCountries) return res.json(cachedCountries);
 
     console.log("fetching from db");
 
     const [countries, total] = await Promise.all([
       Country.find({ is_deleted: false }).select(
-        "name code cities createdAt updatedAt"
+        "name code cities createdAt updatedAt",
       ),
       Country.countDocuments({ is_deleted: false }),
     ]);
@@ -96,13 +84,10 @@ export const getAllCountriesController = async (req, res, next) => {
   }
 };
 
-/***
-   Get One Country
-***/
+// Get a single country by id
 export const getOneCountryController = async (req, res, next) => {
   try {
     const { id } = req.params;
-
     validateObjectId(id, "country id");
 
     const country = await Country.findOne({
@@ -123,24 +108,16 @@ export const getOneCountryController = async (req, res, next) => {
   }
 };
 
-/***
-   Delete Country 
-***/
+// Soft delete a country
 export const deleteCountryController = async (req, res, next) => {
   try {
     const { id } = req.params;
-
     validateObjectId(id, "country id");
 
     const country = await Country.findById(id);
-
-    if (!country) {
-      throw new NotFoundError(res._t("country.not_found"));
-    }
-
-    if (country.is_deleted) {
+    if (!country) throw new NotFoundError(res._t("country.not_found"));
+    if (country.is_deleted)
       throw new BadRequestError(res._t("country.already_deleted"));
-    }
 
     country.is_deleted = true;
     await country.save();
@@ -155,23 +132,22 @@ export const deleteCountryController = async (req, res, next) => {
   }
 };
 
-/***
-   Update Country
-***/
+// Update country data
 export const updateCountryController = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const updateData = req.body;
 
     validateObjectId(id, "country id");
 
-    if (!req.body || Object.keys(req.body).length === 0) {
+    if (!updateData || Object.keys(updateData).length === 0) {
       throw new BadRequestError(res._t("country.update_required"));
     }
 
     const country = await Country.findOneAndUpdate(
       { _id: id, is_deleted: false },
-      { $set: req.body },
-      { new: true, runValidators: true }
+      { $set: updateData },
+      { new: true, runValidators: true },
     ).select("name code cities createdAt updatedAt");
 
     if (!country) {

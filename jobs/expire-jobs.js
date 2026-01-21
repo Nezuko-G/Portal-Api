@@ -16,7 +16,7 @@ const expireJobsCron = () => {
         },
         {
           $set: { is_active: false },
-        }
+        },
       );
 
       console.log(`${result.modifiedCount} jobs deactivated`);

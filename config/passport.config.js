@@ -30,7 +30,7 @@ passport.use(
         if (!userEmail) {
           try {
             console.log(
-              "Email not found in profile, making API call to GitHub..."
+              "Email not found in profile, making API call to GitHub...",
             );
             const emailResponse = await fetch(
               "https://api.github.com/user/emails",
@@ -40,7 +40,7 @@ passport.use(
                   Accept: "application/vnd.github.v3+json",
                   "User-Agent": "Authify-App",
                 },
-              }
+              },
             );
 
             if (emailResponse.ok) {
@@ -48,7 +48,7 @@ passport.use(
               console.log("GitHub emails from API:", emails);
               // Find primary email or first verified email
               const primaryEmail = emails.find(
-                (email) => email.primary && email.verified
+                (email) => email.primary && email.verified,
               );
               const firstVerifiedEmail = emails.find((email) => email.verified);
               userEmail =
@@ -76,18 +76,18 @@ passport.use(
             // Handle duplicate key error
             if (createError.code === 11000) {
               console.log(
-                "Duplicate key error - User already exists, attempting to find existing user"
+                "Duplicate key error - User already exists, attempting to find existing user",
               );
               // Try to find by email or githubId
               user = await User.findOne({
                 $or: [{ githubId: profile.id }, { email: userEmail }],
               });
-              
+
               if (!user) {
                 console.error("Could not find user after duplicate key error");
                 throw new Error("Failed to create or find existing user");
               }
-              
+
               // Update the existing user with GitHub ID if they don't have one
               if (!user.githubId && userEmail) {
                 user.githubId = profile.id;
@@ -101,7 +101,6 @@ passport.use(
             }
           }
         } else {
-          // Update existing user's email if we found one and they don't have one
           if (userEmail && !user.email) {
             user.email = userEmail;
             await user.save();
@@ -109,13 +108,12 @@ passport.use(
           }
         }
 
-        // Generate JWT token for our application
         const jwtAccessToken = generateToken(
           user.name,
           user.email,
           user.phone,
           user._id.toString(),
-          user.role
+          user.role,
         );
 
         return done(null, {
@@ -127,8 +125,8 @@ passport.use(
       } catch (err) {
         return done(err, null);
       }
-    }
-  )
+    },
+  ),
 );
 
 // Google
@@ -165,21 +163,18 @@ passport.use(
             // Handle duplicate key error
             if (createError.code === 11000) {
               console.log(
-                "Duplicate key error - User already exists, attempting to find existing user"
+                "Duplicate key error - User already exists, attempting to find existing user",
               );
               // Try to find by email or googleId
               user = await User.findOne({
-                $or: [
-                  { googleId: profile.id },
-                  { email: userEmail },
-                ],
+                $or: [{ googleId: profile.id }, { email: userEmail }],
               });
-              
+
               if (!user) {
                 console.error("Could not find user after duplicate key error");
                 throw new Error("Failed to create or find existing user");
               }
-              
+
               // Update the existing user with Google ID if they don't have one
               if (!user.googleId && userEmail) {
                 user.googleId = profile.id;
@@ -194,13 +189,12 @@ passport.use(
           }
         }
 
-        // Generate JWT token for our application
         const jwtAccessToken = generateToken(
           user.name,
           user.email,
           user.phone,
           user._id.toString(),
-          user.role
+          user.role,
         );
 
         return done(null, {
@@ -211,8 +205,8 @@ passport.use(
       } catch (err) {
         return done(err, null);
       }
-    }
-  )
+    },
+  ),
 );
 
 passport.serializeUser((user, done) => {

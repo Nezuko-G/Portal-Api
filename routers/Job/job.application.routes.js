@@ -18,13 +18,14 @@ import {
 
 const router = Router();
 
-// User Routes (authenticated users only)
-router.post(
-  "/apply/:jobId",
-  authenticateToken,
-  applyToJobController
-);
+// ======================
+// User Routes
+// ======================
 
+// Apply to a job
+router.post("/apply/:jobId", authenticateToken, applyToJobController);
+
+// Get all applications of the authenticated user
 router.get(
   "/my-applications",
   authenticateToken,
@@ -32,19 +33,25 @@ router.get(
   getMyApplicationsController
 );
 
+// Get single application details for the authenticated user
 router.get(
   "/my-applications/:id",
   authenticateToken,
   getApplicationDetailsController
 );
 
+// Cancel an application (only if pending)
 router.delete(
   "/my-applications/:id",
   authenticateToken,
   cancelApplicationController
 );
 
+// ======================
 // Admin Routes
+// ======================
+
+// Get all applications across all jobs
 router.get(
   "/admin/all",
   authenticateToken,
@@ -53,6 +60,7 @@ router.get(
   getAllApplicationsController
 );
 
+// Get all applications for a specific job
 router.get(
   "/admin/job/:jobId",
   authenticateToken,
@@ -61,6 +69,7 @@ router.get(
   getJobApplicationsController
 );
 
+// Update application status (pending → accepted/rejected)
 router.patch(
   "/admin/:id/status",
   authenticateToken,

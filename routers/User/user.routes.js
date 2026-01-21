@@ -10,8 +10,14 @@ import { uploadImage, uploadCv } from "../../middlewares/upload.middleware.js";
 const router = Router();
 
 router.use(authenticateToken);
-router.patch("/avatar", uploadImage.single("image"), UpdateUserAvatarController);
-router.patch("/cv", uploadCv.single("cv"), UpdateUserCvController);
+
+// Get current user's profile
 router.get("/me", GetUserProfileController);
+
+// Update user avatar
+router.patch("/avatar", uploadImage.single("image"), UpdateUserAvatarController);
+
+// Update user CV (PDF)
+router.patch("/cv", uploadCv.single("cv"), UpdateUserCvController);
 
 export { router as UserRouter };

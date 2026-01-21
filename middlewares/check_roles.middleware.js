@@ -1,4 +1,4 @@
-import { ForbiddenError, UnAuthorizedError } from "../Errors/error.js";
+import { ForbiddenError, UnAuthorizedError } from "../utils/error.js";
 
 export const checkRole = (allowedRoles) => {
   return (req, res, next) => {

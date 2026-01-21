@@ -16,32 +16,44 @@ import {
 
 const router = Router();
 
+// ======================
 // Admin Routes
+// ======================
+
+// Create a new country
 router.post(
   "/",
   authenticateToken,
   checkRole(["admin"]),
   validate(createCountrySchema),
-  createCountryController,
+  createCountryController
 );
 
+// Delete a country by ID
 router.delete(
   "/:id",
   authenticateToken,
   checkRole(["admin"]),
-  deleteCountryController,
+  deleteCountryController
 );
 
+// Update a country by ID
 router.patch(
   "/:id",
   authenticateToken,
   checkRole(["admin"]),
   validate(updateCountrySchema),
-  updateCountryController,
+  updateCountryController
 );
 
+// ======================
 // User Routes
+// ======================
+
+// Get all countries
 router.get("/", getAllCountriesController);
+
+// Get a single country by ID
 router.get("/:id", getOneCountryController);
 
 export { router as CountryRouter };

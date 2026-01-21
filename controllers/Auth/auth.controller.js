@@ -2,7 +2,8 @@ import {
   BadRequestError,
   NotFoundError,
   UnAuthorizedError,
-} from "../../Errors/error.js";
+} from "../../utils/error.js";
+
 import { generateToken, verifyToken } from "../../services/jwt.service.js";
 import User from "../../models/User/user.model.js";
 import {
@@ -13,7 +14,7 @@ import { generateResetCode, setCookieToken } from "../../utils/helpers.js";
 import Email from "../../utils/email.js";
 import crypto from "crypto";
 
-// Signup Controller
+// Signup Controller 
 export const SignUpController = async (req, res, next) => {
   try {
     const data = req.body;
@@ -54,6 +55,7 @@ export const SignUpController = async (req, res, next) => {
         password: hashedPassword,
         role: data.role || "user",
       });
+
       await newUser.save();
     }
 
@@ -197,7 +199,7 @@ export const LogoutController = async (req, res, next) => {
   }
 };
 
-// Forget Password
+// Forgot Password
 export const ForgotPasswordController = async (req, res, next) => {
   try {
     const { email } = req.body;
@@ -213,7 +215,6 @@ export const ForgotPasswordController = async (req, res, next) => {
     }
 
     const resetCode = generateResetCode();
-
     const hashedCode = crypto
       .createHash("sha256")
       .update(resetCode)
@@ -226,7 +227,6 @@ export const ForgotPasswordController = async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
 
     try {
-      // Get locale from request (defaulting to 'en')
       const locale = req.getLocale() || "en";
       const emailSender = new Email(user, locale);
       await emailSender.sendPasswordResetCode(resetCode);
@@ -239,6 +239,7 @@ export const ForgotPasswordController = async (req, res, next) => {
       user.resetPasswordCode = undefined;
       user.resetPasswordCodeExpires = undefined;
       user.resetPasswordCodeVerified = undefined;
+
       await user.save({ validateBeforeSave: false });
       next(error);
     }
@@ -252,7 +253,10 @@ export const VerifyResetCodeController = async (req, res, next) => {
   try {
     const { email, code } = req.body;
 
-    const hashedCode = crypto.createHash("sha256").update(code).digest("hex");
+    const hashedCode = crypto
+      .createHash("sha256")
+      .update(code)
+      .digest("hex");
 
     const user = await User.findOne({
       email: email,
@@ -271,7 +275,9 @@ export const VerifyResetCodeController = async (req, res, next) => {
     }
 
     if (user.resetPasswordCode !== hashedCode) {
-      throw new BadRequestError(res._t("auth.invalid_verification_code"));
+      throw new BadRequestError(
+        res._t("auth.invalid_verification_code")
+      );
     }
 
     if (Date.now() > user.resetPasswordCodeExpires) {
@@ -290,12 +296,15 @@ export const VerifyResetCodeController = async (req, res, next) => {
   }
 };
 
-// Reset Password
+// Reset Password 
 export const ResetPasswordController = async (req, res, next) => {
   try {
     const { email, code, password } = req.body;
 
-    const hashedCode = crypto.createHash("sha256").update(code).digest("hex");
+    const hashedCode = crypto
+      .createHash("sha256")
+      .update(code)
+      .digest("hex");
 
     const user = await User.findOne({
       email: email,
@@ -314,7 +323,9 @@ export const ResetPasswordController = async (req, res, next) => {
     }
 
     if (user.resetPasswordCode !== hashedCode) {
-      throw new BadRequestError(res._t("auth.invalid_verification_code"));
+      throw new BadRequestError(
+        res._t("auth.invalid_verification_code")
+      );
     }
 
     if (Date.now() > user.resetPasswordCodeExpires) {
@@ -322,7 +333,6 @@ export const ResetPasswordController = async (req, res, next) => {
     }
 
     const hashedPassword = await hashPassword(password);
-
     user.password = hashedPassword;
     user.resetPasswordCode = undefined;
     user.resetPasswordCodeExpires = undefined;

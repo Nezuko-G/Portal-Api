@@ -8,16 +8,17 @@ import {
   getAllJobsController,
   getOneJobController,
   deleteJobController,
-  toggleJobActivationController
+  toggleJobActivationController,
 } from "../../controllers/Job/job.controller.js";
-import {
-  createJobSchema,
-  updateJobSchema,
-} from "../../validations/Job/job.validation.js";
+import { createJobSchema, updateJobSchema } from "../../validations/Job/job.validation.js";
 
 const router = Router();
 
+// ======================
 // Admin Routes
+// ======================
+
+// Create a new job
 router.post(
   "/",
   authenticateToken,
@@ -26,13 +27,7 @@ router.post(
   createJobController
 );
 
-router.delete(
-  "/:id",
-  authenticateToken,
-  checkRole(["admin"]),
-  deleteJobController
-);
-
+// Update an existing job
 router.patch(
   "/:id",
   authenticateToken,
@@ -41,6 +36,15 @@ router.patch(
   updateJobController
 );
 
+// Delete a job
+router.delete(
+  "/:id",
+  authenticateToken,
+  checkRole(["admin"]),
+  deleteJobController
+);
+
+// Toggle job activation 
 router.patch(
   "/toggle-activation/:id",
   authenticateToken,
@@ -48,8 +52,14 @@ router.patch(
   toggleJobActivationController
 );
 
+// ======================
 // User Routes
+// ======================
+
+// Get all jobs (
 router.get("/", getAllJobsController);
+
+// Get single job details
 router.get("/:id", getOneJobController);
 
 export { router as JobRouter };

@@ -16,7 +16,9 @@ import {
 
 const router = Router();
 
+// ======================
 // Admin Routes
+// ======================
 router.post(
   "/",
   authenticateToken,
@@ -40,7 +42,9 @@ router.patch(
   updateCategoryController
 );
 
+// ======================
 // User Routes
+// ======================
 router.get("/", getAllCategoriesController);
 router.get("/:id", getOneCategoryController);
 

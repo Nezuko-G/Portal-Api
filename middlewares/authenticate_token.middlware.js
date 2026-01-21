@@ -1,6 +1,6 @@
 import { verifyToken } from "../services/jwt.service.js";
 import User from "../models/User/user.model.js";
-import { UnAuthorizedError } from "../Errors/error.js";
+import { UnAuthorizedError } from "../utils/error.js";
 
 export const authenticateToken = async (req, res, next) => {
   try {
