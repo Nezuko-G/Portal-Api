@@ -1,6 +1,9 @@
 import { Router } from "express";
 import passport from "passport";
-import { signupLimiter, loginLimiter } from "../../middlewares/rate_limiter.middleware.js";
+import {
+  signupLimiter,
+  loginLimiter,
+} from "../../middlewares/rate_limiter.middleware.js";
 import {
   SignUpController,
   LoginController,
@@ -32,9 +35,21 @@ router.post("/refresh-token", RefreshTokenController);
 // ======================
 // Password Reset Flow
 // ======================
-router.post("/forgot-password", validate(ForgotPasswordSchema), ForgotPasswordController);
-router.post("/verify-reset-code", validate(VerifyResetCodeSchema), VerifyResetCodeController);
-router.post("/reset-password", validate(ResetPasswordSchema), ResetPasswordController);
+router.post(
+  "/forgot-password",
+  validate(ForgotPasswordSchema),
+  ForgotPasswordController,
+);
+router.post(
+  "/verify-reset-code",
+  validate(VerifyResetCodeSchema),
+  VerifyResetCodeController,
+);
+router.post(
+  "/reset-password",
+  validate(ResetPasswordSchema),
+  ResetPasswordController,
+);
 
 // ======================
 // GitHub OAuth Routes
@@ -45,7 +60,8 @@ router.get("/github", loginLimiter, async (req, res, next) => {
   try {
     const state = `auth_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
-    const githubAuthUrl = `https://github.com/login/oauth/authorize` +
+    const githubAuthUrl =
+      `https://github.com/login/oauth/authorize` +
       `?client_id=${process.env.GITHUB_CLIENT_ID}` +
       `&redirect_uri=${encodeURIComponent(process.env.GITHUB_CALLBACK_URL || "http://localhost:3000/api/auth/github/callback")}` +
       `&scope=user:email,user` +
@@ -78,7 +94,7 @@ router.post("/github/revoke", loginLimiter, async (req, res) => {
     }
 
     // Clear cookies
-    res.clearCookie("refreshToken");
+    res.clearCookie("jwt");
     res.clearCookie("connect.sid");
     res.clearCookie("githubAccessToken");
 
@@ -87,18 +103,20 @@ router.post("/github/revoke", loginLimiter, async (req, res) => {
       note: "Next login will show the GitHub authorization screen",
     });
   } catch (error) {
-    res.clearCookie("refreshToken");
+    res.clearCookie("jwt");
     res.clearCookie("connect.sid");
     res.clearCookie("githubAccessToken");
 
     res.json({
       message: "Cookies cleared (revocation may have failed)",
-      error: "You may need to manually revoke the app at https://github.com/settings/applications",
+      error:
+        "You may need to manually revoke the app at https://github.com/settings/applications",
     });
   }
 });
 
-router.get("/github/callback",
+router.get(
+  "/github/callback",
   passport.authenticate("github", {
     failureRedirect: "http://localhost:5173/login?error=github_auth_failed",
     session: false,
@@ -107,7 +125,7 @@ router.get("/github/callback",
     try {
       const { refreshToken, githubAccessToken } = req.user;
 
-      res.cookie("refreshToken", refreshToken, {
+      res.cookie("jwt", refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
@@ -125,37 +143,47 @@ router.get("/github/callback",
     } catch (error) {
       res.redirect("http://localhost:5173/login?error=github_callback_failed");
     }
-  }
+  },
 );
 
 // ======================
 // Google OAuth Routes
 // ======================
-router.get("/google", loginLimiter, (req, res, next) => {
-  res.clearCookie("connect.sid");
-  passport.authenticate("google", { scope: ["profile", "email"], session: false })(req, res, next);
-});
 
-router.get("/google/callback",
+router.get(
+  "/google/callback",
   passport.authenticate("google", {
     failureRedirect: "http://localhost:5173/login?error=google_auth_failed",
     session: false,
   }),
   (req, res) => {
     try {
-      const { refreshToken } = req.user;
+      const { accessToken, refreshToken } = req.user;
 
-      res.cookie("refreshToken", refreshToken, {
+      res.cookie("jwt", refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000, 
       });
 
       res.redirect("http://localhost:5173/");
     } catch (error) {
+      console.error("Google callback error:", error);
       res.redirect("http://localhost:5173/login?error=google_callback_failed");
     }
-  }
+  },
 );
 
+router.get("/google", (req, res, next) => {
+  res.clearCookie("connect.sid");
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+    session: false,
+  })(req, res, next);
+});
+
+
+
 export { router as AuthRouter };
+
