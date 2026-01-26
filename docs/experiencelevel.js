@@ -1,37 +1,60 @@
 /**
- * @openapi
+ * @swagger
  * tags:
  *   - name: ExperienceLevel
- *     description: Years-of-experience ranges used for jobs.
+ *     description: Experience level management operations
+ *
  * paths:
  *   /api/experience:
  *     get:
  *       tags: [ExperienceLevel]
- *       summary: List experience levels
+ *       summary: List all experience levels
+ *       description: Retrieve all available experience levels
+ *       security: []
  *       responses:
  *         '200':
- *           description: Array of experience levels
+ *           description: Experience levels retrieved successfully
  *           content:
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/ExperienceLevelListResponse'
  *               example:
- *                 message: Experience levels fetched
- *                 total: 2
+ *                 message: Experience levels fetched successfully
+ *                 total: 4
  *                 data:
  *                   - _id: 65a1234bcf9e2a001234ef1
- *                     title: Junior
- *                     slug: junior
+ *                     title:
+ *                       en: Entry Level
+ *                       ar: مبتدئ
+ *                     slug: entry-level
  *                     minYears: 0
  *                     maxYears: 2
  *                   - _id: 65a1234bcf9e2a001234ef2
- *                     title: Senior
+ *                     title:
+ *                       en: Mid Level
+ *                       ar: متوسط الخبرة
+ *                     slug: mid-level
+ *                     minYears: 2
+ *                     maxYears: 5
+ *                   - _id: 65a1234bcf9e2a001234ef3
+ *                     title:
+ *                       en: Senior
+ *                       ar: خبير
  *                     slug: senior
  *                     minYears: 5
  *                     maxYears: 10
+ *                   - _id: 65a1234bcf9e2a001234ef4
+ *                     title:
+ *                       en: Expert
+ *                       ar: خبير أول
+ *                     slug: expert
+ *                     minYears: 10
+ *                     maxYears: null
+ *
  *     post:
  *       tags: [ExperienceLevel]
- *       summary: Create experience level
+ *       summary: Create a new experience level
+ *       description: Create a new experience level with bilingual titles. Requires admin role.
  *       security:
  *         - bearerAuth: []
  *       requestBody:
@@ -48,13 +71,13 @@
  *               maxYears: 10
  *       responses:
  *         '201':
- *           description: Experience level created
+ *           description: Experience level created successfully
  *           content:
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/ExperienceLevelResponse'
  *               example:
- *                 message: Experience level created
+ *                 message: Experience level created successfully
  *                 data:
  *                   _id: 65a1234bcf9e2a001234ef1
  *                   title:
@@ -63,42 +86,50 @@
  *                   slug: senior
  *                   minYears: 5
  *                   maxYears: 10
+ *         '400':
+ *           $ref: '#/components/responses/ValidationError'
  *         '401':
  *           $ref: '#/components/responses/UnauthorizedError'
  *         '403':
  *           $ref: '#/components/responses/ForbiddenError'
- *         '400':
- *           $ref: '#/components/responses/ValidationError'
+ *
  *   /api/experience/{id}:
  *     get:
  *       tags: [ExperienceLevel]
- *       summary: Get experience level by id
+ *       summary: Get experience level by ID
+ *       description: Retrieve detailed information about a specific experience level
+ *       security: []
  *       parameters:
  *         - in: path
  *           name: id
  *           required: true
  *           schema:
  *             type: string
+ *           description: Experience level ID
  *       responses:
  *         '200':
- *           description: Experience level details
+ *           description: Experience level retrieved successfully
  *           content:
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/ExperienceLevelResponse'
  *               example:
- *                 message: Experience level fetched
+ *                 message: Experience level fetched successfully
  *                 data:
  *                   _id: 65a1234bcf9e2a001234ef1
- *                   title: Senior
+ *                   title:
+ *                     en: Senior
+ *                     ar: خبير
  *                   slug: senior
  *                   minYears: 5
  *                   maxYears: 10
  *         '404':
  *           $ref: '#/components/responses/NotFoundError'
+ *
  *     put:
  *       tags: [ExperienceLevel]
- *       summary: Update experience level
+ *       summary: Update an existing experience level
+ *       description: Update experience level information. Requires admin role.
  *       security:
  *         - bearerAuth: []
  *       parameters:
@@ -107,6 +138,7 @@
  *           required: true
  *           schema:
  *             type: string
+ *           description: Experience level ID
  *       requestBody:
  *         required: true
  *         content:
@@ -116,34 +148,39 @@
  *             example:
  *               title:
  *                 en: Staff Engineer
- *                 ar: خبير أول
+ *                 ar: مهندس أول
  *               minYears: 8
+ *               maxYears: 15
  *       responses:
  *         '200':
- *           description: Experience level updated
+ *           description: Experience level updated successfully
  *           content:
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/ExperienceLevelResponse'
  *               example:
- *                 message: Experience level updated
+ *                 message: Experience level updated successfully
  *                 data:
  *                   _id: 65a1234bcf9e2a001234ef1
  *                   title:
  *                     en: Staff Engineer
- *                     ar: خبير أول
+ *                     ar: مهندس أول
  *                   slug: staff-engineer
  *                   minYears: 8
- *                   maxYears: 10
+ *                   maxYears: 15
+ *         '400':
+ *           $ref: '#/components/responses/ValidationError'
  *         '401':
  *           $ref: '#/components/responses/UnauthorizedError'
  *         '403':
  *           $ref: '#/components/responses/ForbiddenError'
  *         '404':
  *           $ref: '#/components/responses/NotFoundError'
+ *
  *     delete:
  *       tags: [ExperienceLevel]
- *       summary: Delete experience level
+ *       summary: Delete an experience level
+ *       description: Soft delete an experience level (marks as deleted). Requires admin role.
  *       security:
  *         - bearerAuth: []
  *       parameters:
@@ -152,15 +189,16 @@
  *           required: true
  *           schema:
  *             type: string
+ *           description: Experience level ID
  *       responses:
  *         '200':
- *           description: Experience level deleted
+ *           description: Experience level deleted successfully
  *           content:
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/MessageResponse'
  *               example:
- *                 message: Experience level deleted
+ *                 message: Experience level deleted successfully
  *         '401':
  *           $ref: '#/components/responses/UnauthorizedError'
  *         '403':

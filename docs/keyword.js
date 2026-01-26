@@ -1,33 +1,47 @@
 /**
- * @openapi
+ * @swagger
  * tags:
  *   - name: Keyword
- *     description: Keywords associated with jobs.
+ *     description: Keyword management operations for job tagging
+ *
  * paths:
  *   /api/keyword:
  *     get:
  *       tags: [Keyword]
- *       summary: List keywords
+ *       summary: List all keywords
+ *       description: Retrieve all available keywords with bilingual support
+ *       security: []
  *       responses:
  *         '200':
- *           description: Array of keywords
+ *           description: Keywords retrieved successfully
  *           content:
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/KeywordListResponse'
  *               example:
- *                 message: Keywords fetched
- *                 total: 2
+ *                 message: Keywords fetched successfully
+ *                 total: 3
  *                 data:
  *                   - _id: 65a1234bcf9e2a001234k01
- *                     word: Backend
+ *                     word:
+ *                       en: Backend
+ *                       ar: تطوير خلفي
  *                     slug: backend
  *                   - _id: 65a1234bcf9e2a001234k02
- *                     word: Frontend
+ *                     word:
+ *                       en: Frontend
+ *                       ar: تطوير أمامي
  *                     slug: frontend
+ *                   - _id: 65a1234bcf9e2a001234k03
+ *                     word:
+ *                       en: DevOps
+ *                       ar: إدارة التشغيل
+ *                     slug: devops
+ *
  *     post:
  *       tags: [Keyword]
- *       summary: Create keyword
+ *       summary: Create a new keyword
+ *       description: Create a new keyword with bilingual names. Requires admin role.
  *       security:
  *         - bearerAuth: []
  *       requestBody:
@@ -39,58 +53,64 @@
  *             example:
  *               word:
  *                 en: Backend
- *                 ar: مطور خلفية
+ *                 ar: تطوير خلفي
  *       responses:
  *         '201':
- *           description: Keyword created
+ *           description: Keyword created successfully
  *           content:
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/KeywordResponse'
  *               example:
- *                 message: Keyword created
+ *                 message: Keyword created successfully
  *                 data:
  *                   _id: 65a1234bcf9e2a001234k01
  *                   word:
  *                     en: Backend
- *                     ar: مطور خلفية
+ *                     ar: تطوير خلفي
  *                   slug: backend
+ *         '400':
+ *           $ref: '#/components/responses/ValidationError'
  *         '401':
  *           $ref: '#/components/responses/UnauthorizedError'
  *         '403':
  *           $ref: '#/components/responses/ForbiddenError'
- *         '400':
- *           $ref: '#/components/responses/ValidationError'
+ *
  *   /api/keyword/{id}:
  *     get:
  *       tags: [Keyword]
- *       summary: Get keyword by id
+ *       summary: Get keyword by ID
+ *       description: Retrieve detailed information about a specific keyword
+ *       security: []
  *       parameters:
  *         - in: path
  *           name: id
  *           required: true
  *           schema:
  *             type: string
+ *           description: Keyword ID
  *       responses:
  *         '200':
- *           description: Keyword details
+ *           description: Keyword retrieved successfully
  *           content:
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/KeywordResponse'
  *               example:
- *                 message: Keyword fetched
+ *                 message: Keyword fetched successfully
  *                 data:
  *                   _id: 65a1234bcf9e2a001234k01
  *                   word:
  *                     en: Backend
- *                     ar: مطور خلفية
+ *                     ar: تطوير خلفي
  *                   slug: backend
  *         '404':
  *           $ref: '#/components/responses/NotFoundError'
+ *
  *     put:
  *       tags: [Keyword]
- *       summary: Update keyword
+ *       summary: Update an existing keyword
+ *       description: Update keyword information. Requires admin role.
  *       security:
  *         - bearerAuth: []
  *       parameters:
@@ -99,6 +119,7 @@
  *           required: true
  *           schema:
  *             type: string
+ *           description: Keyword ID
  *       requestBody:
  *         required: true
  *         content:
@@ -107,32 +128,36 @@
  *               $ref: '#/components/schemas/KeywordUpdateRequest'
  *             example:
  *               word:
- *                 en: Platform
- *                 ar: منصات
+ *                 en: Full Stack
+ *                 ar: تطوير متكامل
  *       responses:
  *         '200':
- *           description: Keyword updated
+ *           description: Keyword updated successfully
  *           content:
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/KeywordResponse'
  *               example:
- *                 message: Keyword updated
+ *                 message: Keyword updated successfully
  *                 data:
  *                   _id: 65a1234bcf9e2a001234k01
  *                   word:
- *                     en: Platform
- *                     ar: منصات
- *                   slug: platform
+ *                     en: Full Stack
+ *                     ar: تطوير متكامل
+ *                   slug: full-stack
+ *         '400':
+ *           $ref: '#/components/responses/ValidationError'
  *         '401':
  *           $ref: '#/components/responses/UnauthorizedError'
  *         '403':
  *           $ref: '#/components/responses/ForbiddenError'
  *         '404':
  *           $ref: '#/components/responses/NotFoundError'
+ *
  *     delete:
  *       tags: [Keyword]
- *       summary: Delete keyword
+ *       summary: Delete a keyword
+ *       description: Soft delete a keyword (marks as deleted). Requires admin role.
  *       security:
  *         - bearerAuth: []
  *       parameters:
@@ -141,15 +166,16 @@
  *           required: true
  *           schema:
  *             type: string
+ *           description: Keyword ID
  *       responses:
  *         '200':
- *           description: Keyword deleted
+ *           description: Keyword deleted successfully
  *           content:
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/MessageResponse'
  *               example:
- *                 message: Keyword deleted
+ *                 message: Keyword deleted successfully
  *         '401':
  *           $ref: '#/components/responses/UnauthorizedError'
  *         '403':

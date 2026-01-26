@@ -1,14 +1,15 @@
 /**
- * @openapi
+ * @swagger
  * tags:
  *   - name: Auth
- *     description: User authentication, session, and password recovery flows.
+ *     description: User authentication, authorization, and password recovery operations
+ *
  * paths:
  *   /api/auth/signup:
  *     post:
  *       tags: [Auth]
- *       summary: Register a new user
- *       description: Creates a user, stores an http-only JWT cookie `jwt`, and returns the user profile.
+ *       summary: Register a new user account
+ *       description: Creates a new user account with local authentication. Returns a JWT token in both response body and httpOnly cookie.
  *       security: []
  *       requestBody:
  *         required: true
@@ -20,17 +21,21 @@
  *               name: Jane Doe
  *               email: jane@example.com
  *               phone: "01012345678"
- *               password: P@ssw0rd!
- *               role: user
+ *               password: SecureP@ss123
  *       responses:
  *         '201':
- *           description: User created
+ *           description: User account created successfully
+ *           headers:
+ *             Set-Cookie:
+ *               schema:
+ *                 type: string
+ *               description: JWT token as httpOnly cookie
  *           content:
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/AuthSuccessResponse'
  *               example:
- *                 message: User registered
+ *                 message: User registered successfully
  *                 data:
  *                   _id: 65a1234bcf9e2a001234abcd
  *                   name: Jane Doe
@@ -38,14 +43,15 @@
  *                   phone: "01012345678"
  *                   role: user
  *                   provider: local
- *                 token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+ *                 token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
  *         '400':
- *           description: Validation error or user already exists
+ *           $ref: '#/components/responses/ValidationError'
+ *
  *   /api/auth/login:
  *     post:
  *       tags: [Auth]
- *       summary: Log in with email and password
- *       description: Issues an http-only JWT cookie `jwt` plus the token in the response body.
+ *       summary: Authenticate with email and password
+ *       description: Authenticates user credentials and returns a JWT token in both response body and httpOnly cookie.
  *       security: []
  *       requestBody:
  *         required: true
@@ -55,10 +61,15 @@
  *               $ref: '#/components/schemas/AuthLoginRequest'
  *             example:
  *               email: jane@example.com
- *               password: P@ssw0rd!
+ *               password: SecureP@ss123
  *       responses:
  *         '200':
  *           description: Login successful
+ *           headers:
+ *             Set-Cookie:
+ *               schema:
+ *                 type: string
+ *               description: JWT token as httpOnly cookie
  *           content:
  *             application/json:
  *               schema:
@@ -71,14 +82,15 @@
  *                   email: jane@example.com
  *                   phone: "01012345678"
  *                   role: user
- *                 token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+ *                 token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
  *         '401':
  *           $ref: '#/components/responses/UnauthorizedError'
+ *
  *   /api/auth/logout:
  *     get:
  *       tags: [Auth]
- *       summary: Log out
- *       description: Overwrites the `jwt` cookie to log the user out.
+ *       summary: Log out current user
+ *       description: Clears the JWT cookie and invalidates the current session.
  *       security: []
  *       responses:
  *         '200':
@@ -90,15 +102,21 @@
  *               example:
  *                 status: success
  *                 message: Logged out successfully
+ *
  *   /api/auth/refresh-token:
  *     post:
  *       tags: [Auth]
- *       summary: Refresh JWT token
- *       description: Reads the existing `jwt` cookie, reissues a new one, and returns it in the body.
+ *       summary: Refresh JWT access token
+ *       description: Issues a new JWT token using the existing cookie token. Returns the new token in both response body and cookie.
  *       security: []
  *       responses:
  *         '200':
- *           description: Token refreshed
+ *           description: Token refreshed successfully
+ *           headers:
+ *             Set-Cookie:
+ *               schema:
+ *                 type: string
+ *               description: New JWT token as httpOnly cookie
  *           content:
  *             application/json:
  *               schema:
@@ -115,14 +133,15 @@
  *               example:
  *                 status: success
  *                 message: Token refreshed
- *                 token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+ *                 token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
  *         '401':
  *           $ref: '#/components/responses/UnauthorizedError'
+ *
  *   /api/auth/forgot-password:
  *     post:
  *       tags: [Auth]
  *       summary: Request password reset code
- *       description: Sends a 6-digit reset code to the user's email if the account exists and is active.
+ *       description: Sends a 6-digit verification code to the user's email address for password reset.
  *       security: []
  *       requestBody:
  *         required: true
@@ -134,21 +153,29 @@
  *               email: jane@example.com
  *       responses:
  *         '200':
- *           description: Reset code dispatched
+ *           description: Reset code sent successfully
  *           content:
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/AuthMessageResponse'
  *               example:
  *                 status: success
- *                 message: Reset code sent
+ *                 message: Reset code sent to your email
  *         '404':
- *           description: No user found for the provided email
+ *           description: No user found with provided email
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/AuthMessageResponse'
+ *               example:
+ *                 status: error
+ *                 message: User not found
+ *
  *   /api/auth/verify-reset-code:
  *     post:
  *       tags: [Auth]
  *       summary: Verify password reset code
- *       description: Confirms the reset code sent to the user before allowing password reset.
+ *       description: Validates the 6-digit reset code before allowing password reset.
  *       security: []
  *       requestBody:
  *         required: true
@@ -161,23 +188,31 @@
  *               code: "123456"
  *       responses:
  *         '200':
- *           description: Code verified
+ *           description: Code verified successfully
  *           content:
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/AuthMessageResponse'
  *               example:
  *                 status: success
- *                 message: Code verified
+ *                 message: Code verified successfully
  *         '400':
  *           description: Invalid or expired code
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/AuthMessageResponse'
+ *               example:
+ *                 status: error
+ *                 message: Invalid or expired code
  *         '404':
- *           description: No user found for the provided email
+ *           description: No user found with provided email
+ *
  *   /api/auth/reset-password:
  *     post:
  *       tags: [Auth]
- *       summary: Reset password using verification code
- *       description: Validates the code, updates the password, and clears reset state.
+ *       summary: Reset user password
+ *       description: Resets the user's password after verifying the reset code. Clears reset code state after successful reset.
  *       security: []
  *       requestBody:
  *         required: true
@@ -188,11 +223,11 @@
  *             example:
  *               email: jane@example.com
  *               code: "123456"
- *               password: NewP@ssw0rd!
- *               confirmPassword: NewP@ssw0rd!
+ *               password: NewSecureP@ss123
+ *               confirmPassword: NewSecureP@ss123
  *       responses:
  *         '200':
- *           description: Password reset
+ *           description: Password reset successful
  *           content:
  *             application/json:
  *               schema:
@@ -201,78 +236,117 @@
  *                 status: success
  *                 message: Password reset successful
  *         '400':
- *           description: Invalid code or password
+ *           description: Invalid code or passwords do not match
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/AuthMessageResponse'
+ *               example:
+ *                 status: error
+ *                 message: Invalid code or passwords do not match
  *         '404':
- *           description: No user found for the provided email
+ *           description: No user found with provided email
+ *
  *   /api/auth/github:
  *     get:
  *       tags: [Auth]
- *       summary: Start GitHub OAuth
- *       description: Redirects the user agent to GitHub for OAuth authorization.
+ *       summary: Initiate GitHub OAuth flow
+ *       description: Redirects the user to GitHub for OAuth authorization.
  *       security: []
  *       responses:
  *         '302':
- *           description: Redirect to GitHub OAuth
+ *           description: Redirect to GitHub OAuth authorization page
  *           headers:
  *             Location:
  *               schema:
  *                 type: string
  *               example: https://github.com/login/oauth/authorize?client_id=...
+ *
  *   /api/auth/github/callback:
  *     get:
  *       tags: [Auth]
  *       summary: GitHub OAuth callback
- *       description: Handles GitHub OAuth response, sets refreshToken/githubAccessToken cookies, and redirects to the frontend.
+ *       description: Handles the OAuth callback from GitHub. Creates or authenticates user, sets authentication cookies, and redirects to frontend.
  *       security: []
+ *       parameters:
+ *         - in: query
+ *           name: code
+ *           required: true
+ *           schema:
+ *             type: string
+ *           description: OAuth authorization code from GitHub
+ *         - in: query
+ *           name: state
+ *           schema:
+ *             type: string
+ *           description: CSRF protection state parameter
  *       responses:
  *         '302':
- *           description: Redirect to frontend after GitHub login
+ *           description: Redirect to frontend application after successful authentication
  *           headers:
  *             Location:
  *               schema:
  *                 type: string
  *               example: http://localhost:5173/
+ *             Set-Cookie:
+ *               schema:
+ *                 type: string
+ *               description: Authentication tokens as httpOnly cookies
+ *
  *   /api/auth/github/revoke:
  *     post:
  *       tags: [Auth]
- *       summary: Revoke GitHub authorization
- *       description: Revokes stored GitHub access token and clears cookies.
+ *       summary: Revoke GitHub OAuth authorization
+ *       description: Revokes the stored GitHub access token and clears related cookies.
  *       security: []
  *       responses:
  *         '200':
- *           description: GitHub authorization revoked
+ *           description: GitHub authorization revoked successfully
  *           content:
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/MessageResponse'
  *               example:
  *                 message: GitHub authorization revoked and cookies cleared
+ *
  *   /api/auth/google:
  *     get:
  *       tags: [Auth]
- *       summary: Start Google OAuth
- *       description: Redirects the user agent to Google for OAuth authorization.
+ *       summary: Initiate Google OAuth flow
+ *       description: Redirects the user to Google for OAuth authorization.
  *       security: []
  *       responses:
  *         '302':
- *           description: Redirect to Google OAuth
+ *           description: Redirect to Google OAuth authorization page
  *           headers:
  *             Location:
  *               schema:
  *                 type: string
  *               example: https://accounts.google.com/o/oauth2/v2/auth?client_id=...
+ *
  *   /api/auth/google/callback:
  *     get:
  *       tags: [Auth]
  *       summary: Google OAuth callback
- *       description: Handles Google OAuth response, sets refreshToken cookie, and redirects to the frontend.
+ *       description: Handles the OAuth callback from Google. Creates or authenticates user, sets authentication cookies, and redirects to frontend.
  *       security: []
+ *       parameters:
+ *         - in: query
+ *           name: code
+ *           required: true
+ *           schema:
+ *             type: string
+ *           description: OAuth authorization code from Google
  *       responses:
  *         '302':
- *           description: Redirect to frontend after Google login
+ *           description: Redirect to frontend application after successful authentication
  *           headers:
  *             Location:
  *               schema:
  *                 type: string
  *               example: http://localhost:5173/
+ *             Set-Cookie:
+ *               schema:
+ *                 type: string
+ *               description: Authentication tokens as httpOnly cookies
  */
