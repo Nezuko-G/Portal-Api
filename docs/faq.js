@@ -1,33 +1,40 @@
 /**
- * @openapi
+ * @swagger
  * tags:
  *   - name: FAQ
- *     description: Frequently asked questions.
+ *     description: Frequently asked questions management operations
+ *
  * paths:
  *   /api/faq:
  *     get:
  *       tags: [FAQ]
- *       summary: List FAQs
+ *       summary: List all FAQs
+ *       description: Retrieve all frequently asked questions
+ *       security: []
  *       responses:
  *         '200':
- *           description: Array of FAQs
+ *           description: FAQs retrieved successfully
  *           content:
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/FAQListResponse'
  *               example:
- *                 message: FAQs fetched
+ *                 message: FAQs fetched successfully
  *                 total: 2
  *                 data:
  *                   - _id: 65a1234bcf9e2a001234f01
- *                     question: How to apply?
- *                     answer: Create an account then apply to jobs.
+ *                     question: How do I apply for a job?
+ *                     answer: Create an account, upload your CV, and click apply on any job posting.
+ *                     slug: how-to-apply
  *                   - _id: 65a1234bcf9e2a001234f02
- *                     question: Can I withdraw?
- *                     answer: Yes, while status is pending.
+ *                     question: Can I withdraw my application?
+ *                     answer: Yes, you can withdraw your application while it's in pending status.
+ *                     slug: withdraw-application
+ *
  *     post:
  *       tags: [FAQ]
- *       summary: Create FAQ
+ *       summary: Create a new FAQ
+ *       description: Create a new FAQ entry. Requires admin role.
  *       security:
  *         - bearerAuth: []
  *       requestBody:
@@ -37,55 +44,62 @@
  *             schema:
  *               $ref: '#/components/schemas/FAQCreateRequest'
  *             example:
- *               question: How to apply?
- *               answer: Create an account then apply to jobs.
+ *               question: How do I apply for a job?
+ *               answer: Create an account, upload your CV, and click apply on any job posting.
  *       responses:
  *         '201':
- *           description: FAQ created
+ *           description: FAQ created successfully
  *           content:
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/FAQResponse'
  *               example:
- *                 message: FAQ created
+ *                 message: FAQ created successfully
  *                 data:
  *                   _id: 65a1234bcf9e2a001234f01
- *                   question: How to apply?
- *                   answer: Create an account then apply to jobs.
+ *                   question: How do I apply for a job?
+ *                   answer: Create an account, upload your CV, and click apply on any job posting.
+ *                   slug: how-to-apply
+ *         '400':
+ *           $ref: '#/components/responses/ValidationError'
  *         '401':
  *           $ref: '#/components/responses/UnauthorizedError'
  *         '403':
  *           $ref: '#/components/responses/ForbiddenError'
- *         '400':
- *           $ref: '#/components/responses/ValidationError'
+ *
  *   /api/faq/{id}:
  *     get:
  *       tags: [FAQ]
- *       summary: Get FAQ by id
+ *       summary: Get FAQ by ID
+ *       description: Retrieve detailed information about a specific FAQ
+ *       security: []
  *       parameters:
  *         - in: path
  *           name: id
  *           required: true
  *           schema:
  *             type: string
+ *           description: FAQ ID
  *       responses:
  *         '200':
- *           description: FAQ details
+ *           description: FAQ retrieved successfully
  *           content:
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/FAQResponse'
  *               example:
- *                 message: FAQ fetched
+ *                 message: FAQ fetched successfully
  *                 data:
  *                   _id: 65a1234bcf9e2a001234f01
- *                   question: How to apply?
- *                   answer: Create an account then apply to jobs.
+ *                   question: How do I apply for a job?
+ *                   answer: Create an account, upload your CV, and click apply on any job posting.
  *         '404':
  *           $ref: '#/components/responses/NotFoundError'
+ *
  *     put:
  *       tags: [FAQ]
- *       summary: Update FAQ
+ *       summary: Update an existing FAQ
+ *       description: Update FAQ information. Requires admin role.
  *       security:
  *         - bearerAuth: []
  *       parameters:
@@ -94,6 +108,7 @@
  *           required: true
  *           schema:
  *             type: string
+ *           description: FAQ ID
  *       requestBody:
  *         required: true
  *         content:
@@ -101,29 +116,33 @@
  *             schema:
  *               $ref: '#/components/schemas/FAQUpdateRequest'
  *             example:
- *               answer: Updated answer text
+ *               answer: Updated answer with more details about the application process.
  *       responses:
  *         '200':
- *           description: FAQ updated
+ *           description: FAQ updated successfully
  *           content:
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/FAQResponse'
  *               example:
- *                 message: FAQ updated
+ *                 message: FAQ updated successfully
  *                 data:
  *                   _id: 65a1234bcf9e2a001234f01
- *                   question: How to apply?
- *                   answer: Updated answer text
+ *                   question: How do I apply for a job?
+ *                   answer: Updated answer with more details about the application process.
+ *         '400':
+ *           $ref: '#/components/responses/ValidationError'
  *         '401':
  *           $ref: '#/components/responses/UnauthorizedError'
  *         '403':
  *           $ref: '#/components/responses/ForbiddenError'
  *         '404':
  *           $ref: '#/components/responses/NotFoundError'
+ *
  *     delete:
  *       tags: [FAQ]
- *       summary: Delete FAQ
+ *       summary: Delete an FAQ
+ *       description: Soft delete an FAQ entry (marks as deleted). Requires admin role.
  *       security:
  *         - bearerAuth: []
  *       parameters:
@@ -132,15 +151,16 @@
  *           required: true
  *           schema:
  *             type: string
+ *           description: FAQ ID
  *       responses:
  *         '200':
- *           description: FAQ deleted
+ *           description: FAQ deleted successfully
  *           content:
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/MessageResponse'
  *               example:
- *                 message: FAQ deleted
+ *                 message: FAQ deleted successfully
  *         '401':
  *           $ref: '#/components/responses/UnauthorizedError'
  *         '403':
