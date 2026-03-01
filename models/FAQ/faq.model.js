@@ -1,15 +1,29 @@
-import { Schema, model ,mongoose} from "mongoose";
+import { Schema, model, mongoose } from "mongoose";
 
 const FAQSchema = new Schema({
   question: {
-    type: String,
-    required: true,
-    trim: true,
+    en: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    ar: {
+      type: String,
+      required: true,
+      trim: true,
+    },
   },
   answer: {
-    type: String,
-    required: true,
-    trim: true,
+    en: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    ar: {
+      type: String,
+      required: true,
+      trim: true,
+    },
   },
   createdAt: {
     type: Date,
