@@ -6,12 +6,24 @@ const ListItemSchema = new Schema({
 
 const JobSchema = new Schema(
   {
-    title: { type: String, required: true, trim: true },
+    title: {
+      en: { type: String, required: true, trim: true },
+      ar: { type: String, required: true, trim: true },
+    },
     slug: { type: String, required: true },
     jobId: { type: String, unique: true },
-    company: { type: String, required: true, trim: true },
-    organization: { type: String, trim: true },
-    description: { type: String, required: true },
+    company: {
+      en: { type: String, required: true, trim: true },
+      ar: { type: String, required: true, trim: true },
+    },
+    organization: {
+      en: { type: String, trim: true },
+      ar: { type: String, trim: true },
+    },
+    description: {
+      en: { type: String, required: true },
+      ar: { type: String, required: true },
+    },
     fieldOfWork: {
       type: Schema.Types.ObjectId,
       ref: "Category",
@@ -32,8 +44,14 @@ const JobSchema = new Schema(
       type: String,
       enum: ["fixed-term", "permanent", "contract"],
     },
-    responsibilities: [ListItemSchema],
-    requirements: [ListItemSchema],
+    responsibilities: {
+      en: [ListItemSchema],
+      ar: [ListItemSchema],
+    },
+    requirements: {
+      en: [ListItemSchema],
+      ar: [ListItemSchema],
+    },
     country: { type: Schema.Types.ObjectId, ref: "Country", required: true },
     locationDetails: { type: String, trim: true },
     workMode: {
@@ -49,7 +67,7 @@ const JobSchema = new Schema(
     is_deleted: { type: Boolean, default: false },
     is_active: { type: Boolean, default: true },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const JobModel = model("Job", JobSchema);
