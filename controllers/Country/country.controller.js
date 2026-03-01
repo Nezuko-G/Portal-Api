@@ -3,6 +3,11 @@ import { BadRequestError, NotFoundError } from "../../utils/error.js";
 import { validateObjectId } from "../../utils/validateObjectId.js";
 import { getCountryByName } from "../../utils/countries-data.js";
 import { cache } from "../../config/cache.js";
+import {
+  getPreferredLanguage,
+  transformDocumentToLanguage,
+  getMultilingualFields,
+} from "../../utils/languageHelper.js";
 
 const cacheKey = "countries";
 
@@ -55,10 +60,10 @@ export const createCountryController = async (req, res, next) => {
 // Get all countries with caching
 export const getAllCountriesController = async (req, res, next) => {
   try {
-    const cachedCountries = cache.get(cacheKey);
+    const lang = getPreferredLanguage(req);
+    const cacheKeyWithLang = `${cacheKey}_${lang}`;
+    const cachedCountries = cache.get(cacheKeyWithLang);
     if (cachedCountries) return res.json(cachedCountries);
-
-    console.log("fetching from db");
 
     const [countries, total] = await Promise.all([
       Country.find({ is_deleted: false }).select(
@@ -67,16 +72,23 @@ export const getAllCountriesController = async (req, res, next) => {
       Country.countDocuments({ is_deleted: false }),
     ]);
 
+    const multilingualFields = getMultilingualFields("Country");
+    const transformedCountries = transformDocumentToLanguage(
+      countries,
+      lang,
+      multilingualFields,
+    );
+
     const response = {
       message:
-        countries.length === 0
+        transformedCountries.length === 0
           ? res._t("country.no_countries")
           : res._t("country.fetched_all"),
       total,
-      countries,
+      countries: transformedCountries,
     };
 
-    cache.set(cacheKey, response);
+    cache.set(cacheKeyWithLang, response);
 
     res.json(response);
   } catch (error) {
@@ -88,6 +100,7 @@ export const getAllCountriesController = async (req, res, next) => {
 export const getOneCountryController = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const lang = getPreferredLanguage(req);
     validateObjectId(id, "country id");
 
     const country = await Country.findOne({
@@ -99,9 +112,16 @@ export const getOneCountryController = async (req, res, next) => {
       throw new NotFoundError(res._t("country.not_found"));
     }
 
+    const multilingualFields = getMultilingualFields("Country");
+    const transformedData = transformDocumentToLanguage(
+      country,
+      lang,
+      multilingualFields,
+    );
+
     res.json({
       message: res._t("country.fetched"),
-      country,
+      country: transformedData,
     });
   } catch (error) {
     next(error);
@@ -137,6 +157,7 @@ export const updateCountryController = async (req, res, next) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
+    const lang = getPreferredLanguage(req);
 
     validateObjectId(id, "country id");
 
@@ -154,11 +175,19 @@ export const updateCountryController = async (req, res, next) => {
       throw new NotFoundError(res._t("country.not_found"));
     }
 
-    cache.del(cacheKey);
+    cache.del(`${cacheKey}_en`);
+    cache.del(`${cacheKey}_ar`);
+
+    const multilingualFields = getMultilingualFields("Country");
+    const transformedData = transformDocumentToLanguage(
+      country,
+      lang,
+      multilingualFields,
+    );
 
     res.json({
       message: res._t("country.updated"),
-      country,
+      country: transformedData,
     });
   } catch (error) {
     next(error);
