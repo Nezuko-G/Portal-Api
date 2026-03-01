@@ -5,32 +5,46 @@ export const createCategorySchema = (req) => {
   const t = req.__ || req._t || ((key) => key);
 
   return Joi.object({
-    name: Joi.string()
-      .valid(...JOB_CATEGORIES)
+    name: Joi.object({
+      en: Joi.string()
+        .required()
+        .trim()
+        .messages({
+          "any.required": t("category.name_required"),
+          "string.empty": t("category.name_required"),
+        }),
+      ar: Joi.string()
+        .required()
+        .trim()
+        .messages({
+          "any.required": t("category.name_required"),
+          "string.empty": t("category.name_required"),
+        }),
+    })
       .required()
-      .trim()
       .messages({
         "any.required": t("category.name_required"),
-        "string.empty": t("category.name_required"),
-        "any.only": t("category.invalid_category", {
-          categories: JOB_CATEGORIES.join(", "),
-        }),
       }),
 
     slug: Joi.string().trim().lowercase().optional().messages({
       "string.base": "Slug must be a string",
     }),
 
-    description: Joi.string().allow("").optional().messages({
-      "string.base": "Description must be a string",
-    }),
+    description: Joi.object({
+      en: Joi.string().allow("").optional(),
+      ar: Joi.string().allow("").optional(),
+    })
+      .optional()
+      .messages({
+        "object.base": "Description must be an object",
+      }),
 
     keywords: Joi.array()
       .items(
         Joi.string().trim().messages({
           "string.base": "Each keyword must be a string",
           "string.empty": "Keywords cannot contain empty strings",
-        })
+        }),
       )
       .default([])
       .messages({
@@ -47,31 +61,34 @@ export const updateCategorySchema = (req) => {
   const t = req.__ || req._t || ((key) => key);
 
   return Joi.object({
-    name: Joi.string()
-      .valid(...JOB_CATEGORIES)
-      .trim()
+    name: Joi.object({
+      en: Joi.string().trim().optional(),
+      ar: Joi.string().trim().optional(),
+    })
       .optional()
       .messages({
-        "string.empty": t("category.name_required"),
-        "any.only": t("category.invalid_category", {
-          categories: JOB_CATEGORIES.join(", "),
-        }),
+        "object.base": "Name must be an object",
       }),
 
     slug: Joi.string().trim().lowercase().optional().messages({
       "string.base": "Slug must be a string",
     }),
 
-    description: Joi.string().allow("").optional().messages({
-      "string.base": "Description must be a string",
-    }),
+    description: Joi.object({
+      en: Joi.string().allow("").optional(),
+      ar: Joi.string().allow("").optional(),
+    })
+      .optional()
+      .messages({
+        "object.base": "Description must be an object",
+      }),
 
     keywords: Joi.array()
       .items(
         Joi.string().trim().messages({
           "string.base": "Each keyword must be a string",
           "string.empty": "Keywords cannot contain empty strings",
-        })
+        }),
       )
       .optional()
       .messages({
