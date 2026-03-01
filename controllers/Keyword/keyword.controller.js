@@ -2,6 +2,11 @@ import { KeywordModel } from "../../models/Keyword/keyword.model.js";
 import { BadRequestError, NotFoundError } from "../../utils/error.js";
 import { validateObjectId } from "../../utils/validateObjectId.js";
 import { slugify } from "../../utils/helpers.js";
+import {
+  getPreferredLanguage,
+  transformDocumentToLanguage,
+  getMultilingualFields,
+} from "../../utils/languageHelper.js";
 
 // Localize keyword data
 const localizeKeyword = (keyword, lang = "en") => ({
@@ -62,17 +67,21 @@ export const createKeywordController = async (req, res, next) => {
 // Get all keywords
 export const getAllKeywordsController = async (req, res, next) => {
   try {
-    const lang = req.query.lang || "en";
+    const lang = getPreferredLanguage(req);
     const keywords = await KeywordModel.find({ is_deleted: false })
-      .select("-__v")
-      .lean();
+      .select("-__v");
 
-    const localizedData = keywords.map((k) => localizeKeyword(k, lang));
+    const multilingualFields = getMultilingualFields("Keyword");
+    const transformedData = transformDocumentToLanguage(
+      keywords,
+      lang,
+      multilingualFields
+    );
 
     res.json({
       message: "Fetched all keywords",
-      total: localizedData.length,
-      data: localizedData,
+      total: transformedData.length,
+      data: transformedData,
     });
   } catch (error) {
     next(error);
@@ -83,21 +92,34 @@ export const getAllKeywordsController = async (req, res, next) => {
 export const getKeywordByIdController = async (req, res, next) => {
   try {
     const keywordId = req.params.id;
-    const lang = req.query.lang || "en";
+    const lang = getPreferredLanguage(req);
 
     validateObjectId(keywordId);
 
     const keyword = await KeywordModel.findOne({
       _id: keywordId,
       is_deleted: false,
-    }).select("-__v").lean();
+    }).select("-__v");
 
     if (!keyword) {
       throw new NotFoundError("Keyword not found");
     }
 
+    const multilingualFields = getMultilingualFields("Keyword");
+    const transformedData = transformDocumentToLanguage(
+      keyword,
+      lang,
+      multilingualFields
+    );
+
     res.json({
       message: "Keyword fetched",
+      data: transformedData,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
       data: localizeKeyword(keyword, lang),
     });
   } catch (error) {
