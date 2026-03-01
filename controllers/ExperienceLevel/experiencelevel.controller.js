@@ -2,6 +2,11 @@ import { ExperienceLevelModel } from "../../models/ExperienceLevel/experience.le
 import { BadRequestError, NotFoundError } from "../../utils/error.js";
 import { validateObjectId } from "../../utils/validateObjectId.js";
 import { slugify } from "../../utils/helpers.js";
+import {
+  getPreferredLanguage,
+  transformDocumentToLanguage,
+  getMultilingualFields,
+} from "../../utils/languageHelper.js";
 
 // Create a new experience level
 export const createExperienceLevelController = async (req, res, next) => {
@@ -24,13 +29,21 @@ export const createExperienceLevelController = async (req, res, next) => {
     }
 
     const slug = slugify(title.en);
-    const existExperienceLevel = await ExperienceLevelModel.findOne({ slug, is_deleted: false });
+    const existExperienceLevel = await ExperienceLevelModel.findOne({
+      slug,
+      is_deleted: false,
+    });
 
     if (existExperienceLevel) {
       throw new BadRequestError(res.__("experience_level.already_exists"));
     }
 
-    const newExperienceLevel = new ExperienceLevelModel({ title, slug, minYears, maxYears });
+    const newExperienceLevel = new ExperienceLevelModel({
+      title,
+      slug,
+      minYears,
+      maxYears,
+    });
     await newExperienceLevel.save();
 
     res.status(201).json({
@@ -42,26 +55,25 @@ export const createExperienceLevelController = async (req, res, next) => {
   }
 };
 
-// Get all experience levels 
+// Get all experience levels
 export const getAllExperienceLevelsController = async (req, res, next) => {
   try {
-    const lang = req.query.lang || "en";
-    const experienceLevels = await ExperienceLevelModel.find({ is_deleted: false }).select("-__v").lean();
+    const lang = getPreferredLanguage(req);
+    const experienceLevels = await ExperienceLevelModel.find({
+      is_deleted: false,
+    }).select("-__v");
 
-    const localizedData = experienceLevels.map((item) => ({
-      _id: item._id,
-      title: item.title[lang] || item.title.en,
-      slug: item.slug,
-      minYears: item.minYears,
-      maxYears: item.maxYears,
-      createdAt: item.createdAt,
-      updatedAt: item.updatedAt,
-    }));
+    const multilingualFields = getMultilingualFields("ExperienceLevel");
+    const transformedData = transformDocumentToLanguage(
+      experienceLevels,
+      lang,
+      multilingualFields,
+    );
 
     res.json({
       message: res.__("experience_level.fetched_all"),
-      total: localizedData.length,
-      data: localizedData,
+      total: transformedData.length,
+      data: transformedData,
     });
   } catch (error) {
     next(error);
@@ -72,28 +84,28 @@ export const getAllExperienceLevelsController = async (req, res, next) => {
 export const getExperienceLevelByIdController = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const lang = req.query.lang || "en";
+    const lang = getPreferredLanguage(req);
 
     validateObjectId(id);
-    const experienceLevel = await ExperienceLevelModel.findOne({ _id: id, is_deleted: false }).select("-__v").lean();
+    const experienceLevel = await ExperienceLevelModel.findOne({
+      _id: id,
+      is_deleted: false,
+    }).select("-__v");
 
     if (!experienceLevel) {
       throw new NotFoundError(res.__("experience_level.not_found"));
     }
 
-    const localizedData = {
-      _id: experienceLevel._id,
-      title: experienceLevel.title[lang] || experienceLevel.title.en,
-      slug: experienceLevel.slug,
-      minYears: experienceLevel.minYears,
-      maxYears: experienceLevel.maxYears,
-      createdAt: experienceLevel.createdAt,
-      updatedAt: experienceLevel.updatedAt,
-    };
+    const multilingualFields = getMultilingualFields("ExperienceLevel");
+    const transformedData = transformDocumentToLanguage(
+      experienceLevel,
+      lang,
+      multilingualFields,
+    );
 
     res.json({
       message: res.__("experience_level.fetched"),
-      data: localizedData,
+      data: transformedData,
     });
   } catch (error) {
     next(error);
@@ -118,7 +130,10 @@ export const updateExperienceLevelController = async (req, res, next) => {
       throw new BadRequestError("Validation Error", conflicts);
     }
 
-    const experienceLevel = await ExperienceLevelModel.findOne({ _id: id, is_deleted: false });
+    const experienceLevel = await ExperienceLevelModel.findOne({
+      _id: id,
+      is_deleted: false,
+    });
     if (!experienceLevel) {
       throw new NotFoundError(res.__("experience_level.not_found"));
     }
@@ -126,7 +141,10 @@ export const updateExperienceLevelController = async (req, res, next) => {
     // Update slug if title changes
     if (data.title?.en && data.title.en !== experienceLevel.title.en) {
       const newSlug = slugify(data.title.en);
-      const duplicate = await ExperienceLevelModel.findOne({ slug: newSlug, is_deleted: false });
+      const duplicate = await ExperienceLevelModel.findOne({
+        slug: newSlug,
+        is_deleted: false,
+      });
       if (duplicate) {
         throw new BadRequestError(res.__("experience_level.already_exists"));
       }
@@ -151,7 +169,10 @@ export const deleteExperienceLevelController = async (req, res, next) => {
     const { id } = req.params;
     validateObjectId(id);
 
-    const experienceLevel = await ExperienceLevelModel.findOne({ _id: id, is_deleted: false });
+    const experienceLevel = await ExperienceLevelModel.findOne({
+      _id: id,
+      is_deleted: false,
+    });
     if (!experienceLevel) {
       throw new NotFoundError(res.__("experience_level.not_found"));
     }
