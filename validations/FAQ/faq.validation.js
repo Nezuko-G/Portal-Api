@@ -4,23 +4,45 @@ export const createFAQSchemaValidation = (req) => {
   const t = req.__ || req._t || ((key) => key);
 
   return Joi.object({
-    slug: Joi.string().lowercase().trim().optional().messages({
-      "string.base": "Slug must be a string",
-      "string.empty": "Slug cannot be empty",
-    }),
-    question: Joi.string()
+    question: Joi.object({
+      en: Joi.string()
+        .required()
+        .trim()
+        .messages({
+          "any.required": t("faq.question_required"),
+          "string.empty": t("faq.question_required"),
+        }),
+      ar: Joi.string()
+        .required()
+        .trim()
+        .messages({
+          "any.required": t("faq.question_required"),
+          "string.empty": t("faq.question_required"),
+        }),
+    })
       .required()
-      .trim()
       .messages({
         "any.required": t("faq.question_required"),
-        "string.empty": t("faq.question_required"),
       }),
-    answer: Joi.string()
+    answer: Joi.object({
+      en: Joi.string()
+        .required()
+        .trim()
+        .messages({
+          "any.required": t("faq.answer_required"),
+          "string.empty": t("faq.answer_required"),
+        }),
+      ar: Joi.string()
+        .required()
+        .trim()
+        .messages({
+          "any.required": t("faq.answer_required"),
+          "string.empty": t("faq.answer_required"),
+        }),
+    })
       .required()
-      .trim()
       .messages({
         "any.required": t("faq.answer_required"),
-        "string.empty": t("faq.answer_required"),
       }),
     is_deleted: Joi.boolean().optional().messages({
       "boolean.base": "is_deleted must be a boolean",
@@ -32,21 +54,21 @@ export const updateFAQSchema = (req) => {
   const t = req.__ || req._t || ((key) => key);
 
   return Joi.object({
-    slug: Joi.string().lowercase().trim().optional().messages({
-      "string.base": "Slug must be a string",
-      "string.empty": "Slug cannot be empty",
-    }),
-    question: Joi.string()
-      .trim()
+    question: Joi.object({
+      en: Joi.string().trim().optional(),
+      ar: Joi.string().trim().optional(),
+    })
       .optional()
       .messages({
-        "string.empty": t("faq.question_empty"),
+        "object.base": "Question must be an object",
       }),
-    answer: Joi.string()
-      .trim()
+    answer: Joi.object({
+      en: Joi.string().trim().optional(),
+      ar: Joi.string().trim().optional(),
+    })
       .optional()
       .messages({
-        "string.empty": t("faq.answer_empty"),
+        "object.base": "Answer must be an object",
       }),
     is_deleted: Joi.boolean().optional().messages({
       "boolean.base": "is_deleted must be a boolean",
