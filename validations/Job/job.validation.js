@@ -19,35 +19,78 @@ export const createJobSchema = (req) => {
   const listItemSchema = listItemSchemaFactory(t);
 
   return Joi.object({
-    title: Joi.string()
-      .trim()
+    title: Joi.object({
+      en: Joi.string()
+        .trim()
+        .required()
+        .messages({
+          "any.required": t("validation.job_title_required"),
+          "string.empty": t("validation.job_title_required"),
+        }),
+      ar: Joi.string()
+        .trim()
+        .required()
+        .messages({
+          "any.required": t("validation.job_title_required"),
+          "string.empty": t("validation.job_title_required"),
+        }),
+    })
       .required()
       .messages({
         "any.required": t("validation.job_title_required"),
-        "string.empty": t("validation.job_title_required"),
       }),
 
     jobId: Joi.string().trim().messages({
       "string.base": "Job ID must be a string",
     }),
 
-    company: Joi.string()
-      .trim()
+    company: Joi.object({
+      en: Joi.string()
+        .trim()
+        .required()
+        .messages({
+          "any.required": t("validation.company_required"),
+          "string.empty": t("validation.company_required"),
+        }),
+      ar: Joi.string()
+        .trim()
+        .required()
+        .messages({
+          "any.required": t("validation.company_required"),
+          "string.empty": t("validation.company_required"),
+        }),
+    })
       .required()
       .messages({
         "any.required": t("validation.company_required"),
-        "string.empty": t("validation.company_required"),
       }),
 
-    organization: Joi.string().trim().messages({
-      "string.base": "Organization must be a string",
-    }),
+    organization: Joi.object({
+      en: Joi.string().trim().optional(),
+      ar: Joi.string().trim().optional(),
+    })
+      .optional()
+      .messages({
+        "object.base": "Organization must be an object",
+      }),
 
-    description: Joi.string()
+    description: Joi.object({
+      en: Joi.string()
+        .required()
+        .messages({
+          "any.required": t("validation.job_description_required"),
+          "string.empty": t("validation.job_description_required"),
+        }),
+      ar: Joi.string()
+        .required()
+        .messages({
+          "any.required": t("validation.job_description_required"),
+          "string.empty": t("validation.job_description_required"),
+        }),
+    })
       .required()
       .messages({
         "any.required": t("validation.job_description_required"),
-        "string.empty": t("validation.job_description_required"),
       }),
 
     fieldOfWork: objectId.required().messages({
@@ -64,7 +107,7 @@ export const createJobSchema = (req) => {
       .items(
         objectId.messages({
           "string.length": t("validation.invalid_object_id"),
-        })
+        }),
       )
       .default([])
       .messages({
@@ -85,13 +128,23 @@ export const createJobSchema = (req) => {
         "any.only": t("validation.employment_type_invalid"),
       }),
 
-    responsibilities: Joi.array().items(listItemSchema).default([]).messages({
-      "array.base": "Responsibilities must be an array",
-    }),
+    responsibilities: Joi.object({
+      en: Joi.array().items(listItemSchema).default([]),
+      ar: Joi.array().items(listItemSchema).default([]),
+    })
+      .optional()
+      .messages({
+        "object.base": "Responsibilities must be an object",
+      }),
 
-    requirements: Joi.array().items(listItemSchema).default([]).messages({
-      "array.base": "Requirements must be an array",
-    }),
+    requirements: Joi.object({
+      en: Joi.array().items(listItemSchema).default([]),
+      ar: Joi.array().items(listItemSchema).default([]),
+    })
+      .optional()
+      .messages({
+        "object.base": "Requirements must be an object",
+      }),
 
     country: objectId.required().messages({
       "any.required": t("validation.country_required"),
@@ -136,12 +189,13 @@ export const updateJobSchema = (req) => {
   const listItemSchema = listItemSchemaFactory(t);
 
   return Joi.object({
-    title: Joi.string()
-      .trim()
+    title: Joi.object({
+      en: Joi.string().trim().optional(),
+      ar: Joi.string().trim().optional(),
+    })
       .optional()
       .messages({
-        "string.base": "Job title must be a string",
-        "string.empty": t("validation.job_title_required"),
+        "object.base": "Title must be an object",
       }),
 
     jobId: Joi.string().trim().optional().messages({
@@ -149,24 +203,31 @@ export const updateJobSchema = (req) => {
       "string.empty": "Job ID cannot be empty",
     }),
 
-    company: Joi.string()
-      .trim()
+    company: Joi.object({
+      en: Joi.string().trim().optional(),
+      ar: Joi.string().trim().optional(),
+    })
       .optional()
       .messages({
-        "string.base": "Company name must be a string",
-        "string.empty": t("validation.company_required"),
+        "object.base": "Company must be an object",
       }),
 
-    organization: Joi.string().trim().optional().messages({
-      "string.base": "Organization must be a string",
-      "string.empty": "Organization cannot be empty",
-    }),
-
-    description: Joi.string()
+    organization: Joi.object({
+      en: Joi.string().trim().optional(),
+      ar: Joi.string().trim().optional(),
+    })
       .optional()
       .messages({
-        "string.base": "Job description must be a string",
-        "string.empty": t("validation.job_description_required"),
+        "object.base": "Organization must be an object",
+      }),
+
+    description: Joi.object({
+      en: Joi.string().optional(),
+      ar: Joi.string().optional(),
+    })
+      .optional()
+      .messages({
+        "object.base": "Description must be an object",
       }),
 
     fieldOfWork: objectId.optional().messages({
@@ -184,7 +245,7 @@ export const updateJobSchema = (req) => {
         objectId.messages({
           "string.length": t("validation.invalid_object_id"),
           "string.hex": t("validation.invalid_object_id"),
-        })
+        }),
       )
       .optional()
       .messages({
@@ -207,13 +268,23 @@ export const updateJobSchema = (req) => {
         "string.base": "Employment type must be a string",
       }),
 
-    responsibilities: Joi.array().items(listItemSchema).optional().messages({
-      "array.base": "Responsibilities must be an array",
-    }),
+    responsibilities: Joi.object({
+      en: Joi.array().items(listItemSchema).optional(),
+      ar: Joi.array().items(listItemSchema).optional(),
+    })
+      .optional()
+      .messages({
+        "object.base": "Responsibilities must be an object",
+      }),
 
-    requirements: Joi.array().items(listItemSchema).optional().messages({
-      "array.base": "Requirements must be an array",
-    }),
+    requirements: Joi.object({
+      en: Joi.array().items(listItemSchema).optional(),
+      ar: Joi.array().items(listItemSchema).optional(),
+    })
+      .optional()
+      .messages({
+        "object.base": "Requirements must be an object",
+      }),
 
     country: objectId.optional().messages({
       "string.length": t("validation.invalid_object_id"),
