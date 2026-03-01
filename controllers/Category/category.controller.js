@@ -4,6 +4,11 @@ import { validateObjectId } from "../../utils/validateObjectId.js";
 import { JOB_CATEGORIES } from "../../utils/constants.js";
 import { slugify } from "../../utils/helpers.js";
 import { cache } from "../../config/cache.js";
+import {
+  getPreferredLanguage,
+  transformDocumentToLanguage,
+  getMultilingualFields,
+} from "../../utils/languageHelper.js";
 
 const cacheKey = "categories";
 
@@ -11,37 +16,28 @@ const cacheKey = "categories";
 export const createCategoryController = async (req, res, next) => {
   try {
     const { body: data } = req;
+    const lang = getPreferredLanguage(req);
 
-    if (!data.name) {
+    if (!data.name || !data.name.en || !data.name.ar) {
       throw new BadRequestError(res._t("category.name_required"));
     }
 
-    if (!JOB_CATEGORIES.includes(data.name)) {
-      throw new BadRequestError(
-        res._t("category.invalid_category", {
-          categories: JOB_CATEGORIES.join(", "),
-        }),
-      );
-    }
-
-    const existingCategory = await Category.findOne({
-      name: data.name,
-      is_deleted: false,
-    });
-
-    if (existingCategory) {
-      throw new BadRequestError(res._t("category.already_exists"));
-    }
-
-    const slug = slugify(data.name);
+    const slug = slugify(data.name.en);
     const newCategory = new Category({ slug, ...data });
 
     await newCategory.save();
     cache.del(cacheKey);
 
+    const multilingualFields = getMultilingualFields("Category");
+    const transformedData = transformDocumentToLanguage(
+      newCategory,
+      lang,
+      multilingualFields,
+    );
+
     res.status(201).json({
       message: res._t("category.created"),
-      data: newCategory,
+      data: transformedData,
     });
   } catch (error) {
     next(error);
@@ -51,25 +47,32 @@ export const createCategoryController = async (req, res, next) => {
 // Get all categories with caching
 export const getAllCategoriesController = async (req, res, next) => {
   try {
-    const cachedCategories = cache.get(cacheKey);
+    const lang = getPreferredLanguage(req);
+    const cacheKeyWithLang = `${cacheKey}_${lang}`;
+    const cachedCategories = cache.get(cacheKeyWithLang);
 
     if (cachedCategories) {
       return res.json(cachedCategories);
     }
 
-    console.log("fetching from db");
-
     const categories = await Category.find({ is_deleted: false }).select(
       "-__v",
     );
 
+    const multilingualFields = getMultilingualFields("Category");
+    const transformedCategories = transformDocumentToLanguage(
+      categories,
+      lang,
+      multilingualFields,
+    );
+
     const response = {
       message: res._t("category.fetched_all"),
-      total: categories.length,
-      data: categories,
+      total: transformedCategories.length,
+      data: transformedCategories,
     };
 
-    cache.set(cacheKey, response);
+    cache.set(cacheKeyWithLang, response);
 
     res.json(response);
   } catch (error) {
@@ -81,6 +84,7 @@ export const getAllCategoriesController = async (req, res, next) => {
 export const getOneCategoryController = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const lang = getPreferredLanguage(req);
     validateObjectId(id, "category id");
 
     const category = await Category.findOne({
@@ -92,9 +96,16 @@ export const getOneCategoryController = async (req, res, next) => {
       throw new NotFoundError(res._t("category.not_found"));
     }
 
+    const multilingualFields = getMultilingualFields("Category");
+    const transformedData = transformDocumentToLanguage(
+      category,
+      lang,
+      multilingualFields,
+    );
+
     res.json({
       message: res._t("category.fetched"),
-      data: category,
+      data: transformedData,
     });
   } catch (error) {
     next(error);
@@ -135,19 +146,12 @@ export const updateCategoryController = async (req, res, next) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
+    const lang = getPreferredLanguage(req);
 
     validateObjectId(id, "category id");
 
     if (!updateData || Object.keys(updateData).length === 0) {
       throw new BadRequestError(res._t("category.update_required"));
-    }
-
-    if (updateData.name && !JOB_CATEGORIES.includes(updateData.name)) {
-      throw new BadRequestError(
-        res._t("category.invalid_category", {
-          categories: JOB_CATEGORIES.join(", "),
-        }),
-      );
     }
 
     const category = await Category.findByIdAndUpdate(
@@ -160,11 +164,20 @@ export const updateCategoryController = async (req, res, next) => {
       throw new NotFoundError(res._t("category.not_found"));
     }
 
-    cache.del(cacheKey);
+    // Clear all language variants from cache
+    cache.del(`${cacheKey}_en`);
+    cache.del(`${cacheKey}_ar`);
+
+    const multilingualFields = getMultilingualFields("Category");
+    const transformedData = transformDocumentToLanguage(
+      category,
+      lang,
+      multilingualFields,
+    );
 
     res.json({
       message: res._t("category.updated"),
-      data: category,
+      data: transformedData,
     });
   } catch (error) {
     next(error);
