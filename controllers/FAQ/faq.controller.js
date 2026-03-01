@@ -3,6 +3,11 @@ import { BadRequestError, NotFoundError } from "../../utils/error.js";
 import { validateObjectId } from "../../utils/validateObjectId.js";
 import { slugify } from "../../utils/helpers.js";
 import { cache } from "../../config/cache.js";
+import {
+  getPreferredLanguage,
+  transformDocumentToLanguage,
+  getMultilingualFields,
+} from "../../utils/languageHelper.js";
 
 const cacheKey = "faqs";
 
@@ -10,26 +15,34 @@ const cacheKey = "faqs";
 export const createFAQController = async (req, res, next) => {
   try {
     const { question, answer } = req.body;
+    const lang = getPreferredLanguage(req);
     const conflicts = {};
 
-    if (!question) conflicts.question = res._t("faq.question_required");
-    if (!answer) conflicts.answer = res._t("faq.answer_required");
+    if (!question || !question.en || !question.ar)
+      conflicts.question = res._t("faq.question_required");
+    if (!answer || !answer.en || !answer.ar)
+      conflicts.answer = res._t("faq.answer_required");
     if (Object.keys(conflicts).length > 0) {
       throw new BadRequestError(res._t("faq.validation_error"), conflicts);
     }
 
-    const existingFAQ = await Faq.findOne({ question, is_deleted: false });
-    if (existingFAQ) throw new BadRequestError(res._t("faq.already_exists"));
-
-    const slug = slugify(question);
+    const slug = slugify(question.en);
     const newFAQ = new Faq({ slug, question, answer });
     await newFAQ.save();
 
-    cache.del(cacheKey);
+    cache.del(`${cacheKey}_en`);
+    cache.del(`${cacheKey}_ar`);
+
+    const multilingualFields = getMultilingualFields("FAQ");
+    const transformedData = transformDocumentToLanguage(
+      newFAQ,
+      lang,
+      multilingualFields,
+    );
 
     res.status(201).json({
       message: res._t("faq.created"),
-      data: newFAQ,
+      data: transformedData,
     });
   } catch (error) {
     next(error);
@@ -39,23 +52,32 @@ export const createFAQController = async (req, res, next) => {
 // Get all FAQs with caching
 export const getAllFAQController = async (req, res, next) => {
   try {
-    const cachedFaqs = cache.get(cacheKey);
+    const lang = getPreferredLanguage(req);
+    const cacheKeyWithLang = `${cacheKey}_${lang}`;
+    const cachedFaqs = cache.get(cacheKeyWithLang);
+
     if (cachedFaqs) {
-      return res.json({
-        message: res._t("faq.fetched_from_cache"),
-        total: cachedFaqs.length,
-        data: cachedFaqs,
-      });
+      return res.json(cachedFaqs);
     }
 
     const faqs = await Faq.find({ is_deleted: false }).select("-__v");
-    cache.set(cacheKey, faqs);
 
-    res.json({
+    const multilingualFields = getMultilingualFields("FAQ");
+    const transformedFaqs = transformDocumentToLanguage(
+      faqs,
+      lang,
+      multilingualFields,
+    );
+
+    const response = {
       message: res._t("faq.fetched_all"),
-      total: faqs.length,
-      data: faqs,
-    });
+      total: transformedFaqs.length,
+      data: transformedFaqs,
+    };
+
+    cache.set(cacheKeyWithLang, response);
+
+    res.json(response);
   } catch (error) {
     next(error);
   }
@@ -65,14 +87,24 @@ export const getAllFAQController = async (req, res, next) => {
 export const getFAQByIdController = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const lang = getPreferredLanguage(req);
     validateObjectId(id);
 
-    const faq = await Faq.findOne({ _id: id, is_deleted: false }).select("-__v");
+    const faq = await Faq.findOne({ _id: id, is_deleted: false }).select(
+      "-__v",
+    );
     if (!faq) throw new NotFoundError(res._t("faq.not_found"));
+
+    const multilingualFields = getMultilingualFields("FAQ");
+    const transformedData = transformDocumentToLanguage(
+      faq,
+      lang,
+      multilingualFields,
+    );
 
     res.json({
       message: res._t("faq.fetched"),
-      data: faq,
+      data: transformedData,
     });
   } catch (error) {
     next(error);
@@ -84,32 +116,32 @@ export const updateFAQController = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { question, answer } = req.body;
+    const lang = getPreferredLanguage(req);
     validateObjectId(id);
-
-    const conflicts = {};
-    if (question === "") conflicts.question = res._t("faq.question_empty");
-    if (answer === "") conflicts.answer = res._t("faq.answer_empty");
-    if (Object.keys(conflicts).length > 0) {
-      throw new BadRequestError(res._t("faq.validation_error"), conflicts);
-    }
 
     const faq = await Faq.findOne({ _id: id, is_deleted: false });
     if (!faq) throw new NotFoundError(res._t("faq.not_found"));
 
-    if (question && question !== faq.question) {
-      const existingFAQ = await Faq.findOne({ question, is_deleted: false });
-      if (existingFAQ) throw new BadRequestError(res._t("faq.already_exists"));
-      faq.slug = slugify(question);
+    if (question && question.en && question.en !== faq.question.en) {
+      faq.slug = slugify(question.en);
     }
 
     Object.assign(faq, req.body);
     await faq.save();
 
-    cache.del(cacheKey);
+    cache.del(`${cacheKey}_en`);
+    cache.del(`${cacheKey}_ar`);
+
+    const multilingualFields = getMultilingualFields("FAQ");
+    const transformedData = transformDocumentToLanguage(
+      faq,
+      lang,
+      multilingualFields,
+    );
 
     res.json({
       message: res._t("faq.updated"),
-      data: faq,
+      data: transformedData,
     });
   } catch (error) {
     next(error);
