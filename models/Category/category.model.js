@@ -4,14 +4,16 @@ import { JOB_CATEGORIES } from "../../utils/constants.js";
 const categorySchema = new mongoose.Schema(
   {
     name: {
-      type: String,
-      required: [true, "Category name is required"],
-      trim: true,
-      enum: {
-        values: JOB_CATEGORIES,
-        message: "Category must be one of JOB_CATEGORIES",
+      en: {
+        type: String,
+        required: [true, "Category name (English) is required"],
+        trim: true,
       },
-      default: JOB_CATEGORIES[0],
+      ar: {
+        type: String,
+        required: [true, "Category name (Arabic) is required"],
+        trim: true,
+      },
     },
 
     slug: {
@@ -22,8 +24,14 @@ const categorySchema = new mongoose.Schema(
     },
 
     description: {
-      type: String,
-      default: "",
+      en: {
+        type: String,
+        default: "",
+      },
+      ar: {
+        type: String,
+        default: "",
+      },
     },
 
     keywords: {
@@ -35,7 +43,7 @@ const categorySchema = new mongoose.Schema(
       default: false,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const Category = mongoose.model("Category", categorySchema);
