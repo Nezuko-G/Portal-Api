@@ -4,141 +4,206 @@ import dbconnect from "../config/dbConnect.js";
 const countries = [
   // 🌍 Middle East & Arab Countries
   {
-    name: "Egypt",
+    name: { en: "Egypt", ar: "مصر" },
     code: "EG",
     cities: [
-      { name: "Cairo" },
-      { name: "Giza" },
-      { name: "Alexandria" },
-      { name: "Mansoura" },
+      { name: { en: "Cairo", ar: "القاهرة" } },
+      { name: { en: "Giza", ar: "الجيزة" } },
+      { name: { en: "Alexandria", ar: "الإسكندرية" } },
+      { name: { en: "Mansoura", ar: "المنصورة" } },
     ],
   },
   {
-    name: "Saudi Arabia",
+    name: { en: "Saudi Arabia", ar: "المملكة العربية السعودية" },
     code: "SA",
     cities: [
-      { name: "Riyadh" },
-      { name: "Jeddah" },
-      { name: "Mecca" },
-      { name: "Medina" },
+      { name: { en: "Riyadh", ar: "الرياض" } },
+      { name: { en: "Jeddah", ar: "جدة" } },
+      { name: { en: "Mecca", ar: "مكة" } },
+      { name: { en: "Medina", ar: "المدينة" } },
     ],
   },
   {
-    name: "United Arab Emirates",
+    name: { en: "United Arab Emirates", ar: "الإمارات العربية المتحدة" },
     code: "AE",
-    cities: [{ name: "Dubai" }, { name: "Abu Dhabi" }, { name: "Sharjah" }],
+    cities: [
+      { name: { en: "Dubai", ar: "دبي" } },
+      { name: { en: "Abu Dhabi", ar: "أبو ظبي" } },
+      { name: { en: "Sharjah", ar: "الشارقة" } },
+    ],
   },
   {
-    name: "Kuwait",
+    name: { en: "Kuwait", ar: "الكويت" },
     code: "KW",
-    cities: [{ name: "Kuwait City" }],
+    cities: [{ name: { en: "Kuwait City", ar: "مدينة الكويت" } }],
   },
   {
-    name: "Qatar",
+    name: { en: "Qatar", ar: "قطر" },
     code: "QA",
-    cities: [{ name: "Doha" }],
+    cities: [{ name: { en: "Doha", ar: "الدوحة" } }],
   },
   {
-    name: "Jordan",
+    name: { en: "Jordan", ar: "الأردن" },
     code: "JO",
-    cities: [{ name: "Amman" }, { name: "Zarqa" }],
+    cities: [
+      { name: { en: "Amman", ar: "عمّان" } },
+      { name: { en: "Zarqa", ar: "الزرقاء" } },
+    ],
   },
   {
-    name: "Morocco",
+    name: { en: "Morocco", ar: "المغرب" },
     code: "MA",
-    cities: [{ name: "Casablanca" }, { name: "Rabat" }, { name: "Marrakesh" }],
+    cities: [
+      { name: { en: "Casablanca", ar: "الدار البيضاء" } },
+      { name: { en: "Rabat", ar: "الرباط" } },
+      { name: { en: "Marrakesh", ar: "مراكش" } },
+    ],
   },
 
   // 🌍 Europe
   {
-    name: "United Kingdom",
+    name: { en: "United Kingdom", ar: "المملكة المتحدة" },
     code: "GB",
-    cities: [{ name: "London" }, { name: "Manchester" }, { name: "Liverpool" }],
+    cities: [
+      { name: { en: "London", ar: "لندن" } },
+      { name: { en: "Manchester", ar: "مانشستر" } },
+      { name: { en: "Liverpool", ar: "ليفربول" } },
+    ],
   },
   {
-    name: "Germany",
+    name: { en: "Germany", ar: "ألمانيا" },
     code: "DE",
-    cities: [{ name: "Berlin" }, { name: "Munich" }, { name: "Hamburg" }],
+    cities: [
+      { name: { en: "Berlin", ar: "برلين" } },
+      { name: { en: "Munich", ar: "ميونخ" } },
+      { name: { en: "Hamburg", ar: "هامبورغ" } },
+    ],
   },
   {
-    name: "France",
+    name: { en: "France", ar: "فرنسا" },
     code: "FR",
-    cities: [{ name: "Paris" }, { name: "Lyon" }, { name: "Marseille" }],
+    cities: [
+      { name: { en: "Paris", ar: "باريس" } },
+      { name: { en: "Lyon", ar: "ليون" } },
+      { name: { en: "Marseille", ar: "مرسيليا" } },
+    ],
   },
   {
-    name: "Italy",
+    name: { en: "Italy", ar: "إيطاليا" },
     code: "IT",
-    cities: [{ name: "Rome" }, { name: "Milan" }, { name: "Naples" }],
+    cities: [
+      { name: { en: "Rome", ar: "روما" } },
+      { name: { en: "Milan", ar: "ميلان" } },
+      { name: { en: "Naples", ar: "نابولي" } },
+    ],
   },
   {
-    name: "Spain",
+    name: { en: "Spain", ar: "إسبانيا" },
     code: "ES",
-    cities: [{ name: "Madrid" }, { name: "Barcelona" }, { name: "Valencia" }],
+    cities: [
+      { name: { en: "Madrid", ar: "مدريد" } },
+      { name: { en: "Barcelona", ar: "برشلونة" } },
+      { name: { en: "Valencia", ar: "فالنسيا" } },
+    ],
   },
 
   // 🌏 Asia
   {
-    name: "India",
+    name: { en: "India", ar: "الهند" },
     code: "IN",
-    cities: [{ name: "Delhi" }, { name: "Mumbai" }, { name: "Bangalore" }],
+    cities: [
+      { name: { en: "Delhi", ar: "دلهي" } },
+      { name: { en: "Mumbai", ar: "مومباي" } },
+      { name: { en: "Bangalore", ar: "بنغالور" } },
+    ],
   },
   {
-    name: "China",
+    name: { en: "China", ar: "الصين" },
     code: "CN",
-    cities: [{ name: "Beijing" }, { name: "Shanghai" }, { name: "Shenzhen" }],
+    cities: [
+      { name: { en: "Beijing", ar: "بكين" } },
+      { name: { en: "Shanghai", ar: "شنغهاي" } },
+      { name: { en: "Shenzhen", ar: "شنتشن" } },
+    ],
   },
   {
-    name: "Japan",
+    name: { en: "Japan", ar: "اليابان" },
     code: "JP",
-    cities: [{ name: "Tokyo" }, { name: "Osaka" }, { name: "Kyoto" }],
+    cities: [
+      { name: { en: "Tokyo", ar: "طوكيو" } },
+      { name: { en: "Osaka", ar: "أوساكا" } },
+      { name: { en: "Kyoto", ar: "كيوتو" } },
+    ],
   },
   {
-    name: "South Korea",
+    name: { en: "South Korea", ar: "كوريا الجنوبية" },
     code: "KR",
-    cities: [{ name: "Seoul" }, { name: "Busan" }],
+    cities: [
+      { name: { en: "Seoul", ar: "سيول" } },
+      { name: { en: "Busan", ar: "بوسان" } },
+    ],
   },
 
   // 🌍 Africa
   {
-    name: "South Africa",
+    name: { en: "South Africa", ar: "جنوب أفريقيا" },
     code: "ZA",
-    cities: [{ name: "Cape Town" }, { name: "Johannesburg" }],
+    cities: [
+      { name: { en: "Cape Town", ar: "كيب تاون" } },
+      { name: { en: "Johannesburg", ar: "جوهانسبرغ" } },
+    ],
   },
   {
-    name: "Nigeria",
+    name: { en: "Nigeria", ar: "نيجيريا" },
     code: "NG",
-    cities: [{ name: "Lagos" }, { name: "Abuja" }],
+    cities: [
+      { name: { en: "Lagos", ar: "لاغوس" } },
+      { name: { en: "Abuja", ar: "أبوجا" } },
+    ],
   },
   {
-    name: "Kenya",
+    name: { en: "Kenya", ar: "كينيا" },
     code: "KE",
-    cities: [{ name: "Nairobi" }, { name: "Mombasa" }],
+    cities: [
+      { name: { en: "Nairobi", ar: "نيروبي" } },
+      { name: { en: "Mombasa", ar: "مومباسا" } },
+    ],
   },
 
   // 🌎 Americas
   {
-    name: "United States",
+    name: { en: "United States", ar: "الولايات المتحدة" },
     code: "US",
     cities: [
-      { name: "New York" },
-      { name: "Los Angeles" },
-      { name: "Chicago" },
+      { name: { en: "New York", ar: "نيويورك" } },
+      { name: { en: "Los Angeles", ar: "لوس أنجلوس" } },
+      { name: { en: "Chicago", ar: "شيكاغو" } },
     ],
   },
   {
-    name: "Canada",
+    name: { en: "Canada", ar: "كندا" },
     code: "CA",
-    cities: [{ name: "Toronto" }, { name: "Vancouver" }, { name: "Montreal" }],
+    cities: [
+      { name: { en: "Toronto", ar: "تورونتو" } },
+      { name: { en: "Vancouver", ar: "فانكوفر" } },
+      { name: { en: "Montreal", ar: "مونتريال" } },
+    ],
   },
   {
-    name: "Brazil",
+    name: { en: "Brazil", ar: "البرازيل" },
     code: "BR",
-    cities: [{ name: "São Paulo" }, { name: "Rio de Janeiro" }],
+    cities: [
+      { name: { en: "São Paulo", ar: "ساو باولو" } },
+      { name: { en: "Rio de Janeiro", ar: "ريو دي جانيرو" } },
+    ],
   },
   {
-    name: "Mexico",
+    name: { en: "Mexico", ar: "المكسيك" },
     code: "MX",
-    cities: [{ name: "Mexico City" }, { name: "Guadalajara" }],
+    cities: [
+      { name: { en: "Mexico City", ar: "مدينة مكسيكو" } },
+      { name: { en: "Guadalajara", ar: "غوادالاخارا" } },
+    ],
   },
 ];
 
