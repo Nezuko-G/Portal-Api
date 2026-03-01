@@ -5,14 +5,25 @@ export const createCountrySchema = (req) => {
   const t = req.__ || req._t || ((key) => key);
 
   return Joi.object({
-    name: Joi.string()
-      .trim()
-      .valid(...COUNTRY_NAMES)
+    name: Joi.object({
+      en: Joi.string()
+        .trim()
+        .required()
+        .messages({
+          "any.required": t("validation.country_name_required"),
+          "string.empty": t("validation.country_name_required"),
+        }),
+      ar: Joi.string()
+        .trim()
+        .required()
+        .messages({
+          "any.required": t("validation.country_name_required"),
+          "string.empty": t("validation.country_name_required"),
+        }),
+    })
       .required()
       .messages({
         "any.required": t("validation.country_name_required"),
-        "string.empty": t("validation.country_name_required"),
-        "any.only": t("validation.country_name_invalid"),
       }),
 
     code: Joi.string()
@@ -29,12 +40,25 @@ export const createCountrySchema = (req) => {
     cities: Joi.array()
       .items(
         Joi.object({
-          name: Joi.string()
-            .trim()
+          name: Joi.object({
+            en: Joi.string()
+              .trim()
+              .required()
+              .messages({
+                "any.required": t("validation.city_name_required"),
+                "string.empty": t("validation.city_name_required"),
+              }),
+            ar: Joi.string()
+              .trim()
+              .required()
+              .messages({
+                "any.required": t("validation.city_name_required"),
+                "string.empty": t("validation.city_name_required"),
+              }),
+          })
             .required()
             .messages({
               "any.required": t("validation.city_name_required"),
-              "string.empty": t("validation.city_name_required"),
             }),
           is_deleted: Joi.boolean().default(false),
         })
@@ -54,13 +78,13 @@ export const updateCountrySchema = (req) => {
   const t = req.__ || req._t || ((key) => key);
 
   return Joi.object({
-    name: Joi.string()
-      .trim()
-      .valid(...COUNTRY_NAMES)
+    name: Joi.object({
+      en: Joi.string().trim().optional(),
+      ar: Joi.string().trim().optional(),
+    })
       .optional()
       .messages({
-        "string.empty": t("validation.country_name_required"),
-        "any.only": t("validation.country_name_invalid"),
+        "object.base": "Name must be an object",
       }),
 
     code: Joi.string()
@@ -76,8 +100,14 @@ export const updateCountrySchema = (req) => {
     cities: Joi.array()
       .items(
         Joi.object({
-          name: Joi.string()
-            .trim()
+          name: Joi.object({
+            en: Joi.string().trim().optional(),
+            ar: Joi.string().trim().optional(),
+          })
+            .optional()
+            .messages({
+              "object.base": "Name must be an object",
+            }),
             .required()
             .messages({
               "string.empty": t("validation.city_name_required"),
