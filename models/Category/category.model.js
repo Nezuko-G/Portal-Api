@@ -6,11 +6,6 @@ const categorySchema = new mongoose.Schema(
   {
     name: {
       ...localizedStringField(),
-      validate: {
-        validator: (value) =>
-          Boolean(value?.en) && JOB_CATEGORIES.includes(value.en),
-        message: "Category must be one of JOB_CATEGORIES",
-      },
     },
 
     slug: {
@@ -21,8 +16,18 @@ const categorySchema = new mongoose.Schema(
     },
 
     description: {
-      ...localizedStringField({ required: false }),
-      default: { en: "", ar: "" },
+      en: {
+        type: String,
+        required: false,
+        trim: true,
+        default: "",
+      },
+      ar: {
+        type: String,
+        required: false,
+        trim: true,
+        default: "",
+      },
     },
 
     keywords: {
@@ -36,5 +41,12 @@ const categorySchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+categorySchema
+  .path("name.en")
+  .validate(
+    (value) => JOB_CATEGORIES.includes(value),
+    "Category must be one of JOB_CATEGORIES",
+  );
 
 export const Category = mongoose.model("Category", categorySchema);
