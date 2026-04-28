@@ -1,17 +1,16 @@
 import mongoose from "mongoose";
 import { JOB_CATEGORIES } from "../../utils/constants.js";
+import { localizedStringField } from "../../utils/helpers.js";
 
 const categorySchema = new mongoose.Schema(
   {
     name: {
-      type: String,
-      required: [true, "Category name is required"],
-      trim: true,
-      enum: {
-        values: JOB_CATEGORIES,
+      ...localizedStringField(),
+      validate: {
+        validator: (value) =>
+          Boolean(value?.en) && JOB_CATEGORIES.includes(value.en),
         message: "Category must be one of JOB_CATEGORIES",
       },
-      default: JOB_CATEGORIES[0],
     },
 
     slug: {
@@ -22,8 +21,8 @@ const categorySchema = new mongoose.Schema(
     },
 
     description: {
-      type: String,
-      default: "",
+      ...localizedStringField({ required: false }),
+      default: { en: "", ar: "" },
     },
 
     keywords: {
@@ -35,7 +34,7 @@ const categorySchema = new mongoose.Schema(
       default: false,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const Category = mongoose.model("Category", categorySchema);

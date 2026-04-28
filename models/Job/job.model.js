@@ -1,17 +1,18 @@
 import { Schema, model } from "mongoose";
+import { localizedStringField } from "../../utils/helpers.js";
 
 const ListItemSchema = new Schema({
-  text: { type: String, trim: true, required: true },
+  text: { ...localizedStringField() },
 });
 
 const JobSchema = new Schema(
   {
-    title: { type: String, required: true, trim: true },
+    title: { ...localizedStringField() },
     slug: { type: String, required: true },
     jobId: { type: String, unique: true },
     company: { type: String, required: true, trim: true },
     organization: { type: String, trim: true },
-    description: { type: String, required: true },
+    description: { ...localizedStringField() },
     fieldOfWork: {
       type: Schema.Types.ObjectId,
       ref: "Category",
@@ -35,7 +36,7 @@ const JobSchema = new Schema(
     responsibilities: [ListItemSchema],
     requirements: [ListItemSchema],
     country: { type: Schema.Types.ObjectId, ref: "Country", required: true },
-    locationDetails: { type: String, trim: true },
+    locationDetails: { ...localizedStringField({ required: false }) },
     workMode: {
       type: String,
       enum: ["office", "remote", "hybrid"],
@@ -45,11 +46,11 @@ const JobSchema = new Schema(
       type: Date,
       required: true,
     },
-    duration: { type: String },
+    duration: { ...localizedStringField({ required: false }) },
     is_deleted: { type: Boolean, default: false },
     is_active: { type: Boolean, default: true },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const JobModel = model("Job", JobSchema);

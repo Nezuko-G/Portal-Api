@@ -2,6 +2,7 @@ import { KeywordModel } from "../../models/Keyword/keyword.model.js";
 import { BadRequestError, NotFoundError } from "../../utils/error.js";
 import { validateObjectId } from "../../utils/validateObjectId.js";
 import { slugify } from "../../utils/helpers.js";
+import { localizeData, resolveLocale } from "../../utils/helpers.js";
 
 // Localize keyword data
 const localizeKeyword = (keyword, lang = "en") => ({
@@ -30,6 +31,7 @@ const validateKeywordInput = (word, res) => {
 export const createKeywordController = async (req, res, next) => {
   try {
     const { word } = req.body;
+    const locale = resolveLocale(req);
 
     validateKeywordInput(word, res);
 
@@ -52,7 +54,7 @@ export const createKeywordController = async (req, res, next) => {
 
     res.status(201).json({
       message: "Keyword created",
-      data: newKeyword,
+      data: localizeData(newKeyword, locale),
     });
   } catch (error) {
     next(error);
@@ -62,7 +64,7 @@ export const createKeywordController = async (req, res, next) => {
 // Get all keywords
 export const getAllKeywordsController = async (req, res, next) => {
   try {
-    const lang = req.query.lang || "en";
+    const lang = resolveLocale(req);
     const keywords = await KeywordModel.find({ is_deleted: false })
       .select("-__v")
       .lean();
@@ -83,14 +85,16 @@ export const getAllKeywordsController = async (req, res, next) => {
 export const getKeywordByIdController = async (req, res, next) => {
   try {
     const keywordId = req.params.id;
-    const lang = req.query.lang || "en";
+    const lang = resolveLocale(req);
 
     validateObjectId(keywordId);
 
     const keyword = await KeywordModel.findOne({
       _id: keywordId,
       is_deleted: false,
-    }).select("-__v").lean();
+    })
+      .select("-__v")
+      .lean();
 
     if (!keyword) {
       throw new NotFoundError("Keyword not found");
@@ -112,6 +116,7 @@ export const updateKeywordController = async (req, res, next) => {
     validateObjectId(keywordId);
 
     const { word } = req.body;
+    const locale = resolveLocale(req);
     validateKeywordInput(word, res);
 
     const existingKeyword = await KeywordModel.findOne({
@@ -146,7 +151,7 @@ export const updateKeywordController = async (req, res, next) => {
 
     res.json({
       message: "Keyword updated",
-      data: existingKeyword,
+      data: localizeData(existingKeyword, locale),
     });
   } catch (error) {
     next(error);

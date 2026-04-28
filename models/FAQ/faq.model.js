@@ -1,15 +1,12 @@
-import { Schema, model ,mongoose} from "mongoose";
+import { Schema, model, mongoose } from "mongoose";
+import { localizedStringField } from "../../utils/helpers.js";
 
 const FAQSchema = new Schema({
   question: {
-    type: String,
-    required: true,
-    trim: true,
+    ...localizedStringField(),
   },
   answer: {
-    type: String,
-    required: true,
-    trim: true,
+    ...localizedStringField(),
   },
   createdAt: {
     type: Date,

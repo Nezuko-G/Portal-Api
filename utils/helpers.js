@@ -1,7 +1,7 @@
 export const setCookieToken = (res, token, req) => {
   const cookieOptions = {
     expires: new Date(
-      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
     ),
     httpOnly: true,
     secure:
@@ -28,45 +28,80 @@ export function slugify(text) {
     .replace(/^-+|-+$/g, ""); // trim hyphens from start/end
 }
 
-/**
- * Localize data based on language preference
- * @param {Object|Array} data - Data to localize
- * @param {String} lang - Language code ('en' or 'ar')
- * @param {Array} fieldsToLocalize - Fields that have en/ar structure
- * @returns {Object|Array} - Localized data
- */
-export function localizeData(data, lang = 'en', fieldsToLocalize = ['title', 'word', 'name', 'question', 'answer', 'description']) {
-  if (!data) return data;
+export const SUPPORTED_LOCALES = ["en", "ar"];
 
-  // Handle array of items
+export const normalizeLocale = (locale = "en") =>
+  String(locale).toLowerCase().startsWith("ar") ? "ar" : "en";
+
+export const resolveLocale = (input) => {
+  if (typeof input === "string") {
+    return normalizeLocale(input);
+  }
+
+  const requestedLocale =
+    input?.getLocale?.() ||
+    input?.query?.lang ||
+    input?.headers?.["accept-language"]?.split(",")[0] ||
+    "en";
+
+  return normalizeLocale(requestedLocale);
+};
+
+export const buildLocalizedCacheKey = (baseKey, locale) =>
+  `${baseKey}:${normalizeLocale(locale)}`;
+
+export const clearLocalizedCache = (cache, baseKey) => {
+  SUPPORTED_LOCALES.forEach((locale) => {
+    cache.del(buildLocalizedCacheKey(baseKey, locale));
+  });
+};
+
+const isLocalizedPair = (value) =>
+  value &&
+  typeof value === "object" &&
+  !Array.isArray(value) &&
+  Object.prototype.hasOwnProperty.call(value, "en") &&
+  Object.prototype.hasOwnProperty.call(value, "ar");
+
+export const localizeData = (data, locale = "en") => {
+  if (data === null || data === undefined) {
+    return data;
+  }
+
+  const activeLocale = normalizeLocale(locale);
+
   if (Array.isArray(data)) {
-    return data.map(item => localizeData(item, lang, fieldsToLocalize));
+    return data.map((item) => localizeData(item, activeLocale));
   }
 
-  // Handle single object
-  if (typeof data === 'object' && data !== null) {
-    const localized = {};
-    
-    for (const key in data) {
-      if (data[key] && typeof data[key] === 'object' && !Array.isArray(data[key])) {
-        // Check if this field has localization structure (en/ar)
-        if (fieldsToLocalize.includes(key) && data[key].en !== undefined && data[key].ar !== undefined) {
-          // Return only the requested language
-          localized[key] = data[key][lang] || data[key]['en'];
-        } else if (data[key]._doc) {
-          // Handle mongoose documents
-          localized[key] = localizeData(data[key]._doc, lang, fieldsToLocalize);
-        } else {
-          // Recursively localize nested objects
-          localized[key] = localizeData(data[key], lang, fieldsToLocalize);
-        }
-      } else {
-        localized[key] = data[key];
-      }
-    }
-    
-    return localized;
+  if (typeof data !== "object") {
+    return data;
   }
 
-  return data;
-}
+  const source = typeof data.toObject === "function" ? data.toObject() : data;
+
+  if (isLocalizedPair(source)) {
+    return source[activeLocale] || source.en || source.ar;
+  }
+
+  const localized = {};
+
+  for (const [key, value] of Object.entries(source)) {
+    localized[key] = localizeData(value, activeLocale);
+  }
+
+  return localized;
+};
+
+export const localizedStringField = (options = {}) => ({
+  en: {
+    type: String,
+    required: options.required ?? true,
+    trim: true,
+  },
+  ar: {
+    type: String,
+    required: options.required ?? true,
+    trim: true,
+  },
+});

@@ -3,6 +3,12 @@ import { BadRequestError, NotFoundError } from "../../utils/error.js";
 import { validateObjectId } from "../../utils/validateObjectId.js";
 import { slugify } from "../../utils/helpers.js";
 import { cache } from "../../config/cache.js";
+import {
+  buildLocalizedCacheKey,
+  clearLocalizedCache,
+  localizeData,
+  resolveLocale,
+} from "../../utils/helpers.js";
 
 const cacheKey = "faqs";
 
@@ -10,6 +16,7 @@ const cacheKey = "faqs";
 export const createFAQController = async (req, res, next) => {
   try {
     const { question, answer } = req.body;
+    const locale = resolveLocale(req);
     const conflicts = {};
 
     if (!question) conflicts.question = res._t("faq.question_required");
@@ -18,18 +25,21 @@ export const createFAQController = async (req, res, next) => {
       throw new BadRequestError(res._t("faq.validation_error"), conflicts);
     }
 
-    const existingFAQ = await Faq.findOne({ question, is_deleted: false });
+    const existingFAQ = await Faq.findOne({
+      "question.en": question.en,
+      is_deleted: false,
+    });
     if (existingFAQ) throw new BadRequestError(res._t("faq.already_exists"));
 
-    const slug = slugify(question);
+    const slug = slugify(question.en);
     const newFAQ = new Faq({ slug, question, answer });
     await newFAQ.save();
 
-    cache.del(cacheKey);
+    clearLocalizedCache(cache, cacheKey);
 
     res.status(201).json({
       message: res._t("faq.created"),
-      data: newFAQ,
+      data: localizeData(newFAQ, locale),
     });
   } catch (error) {
     next(error);
@@ -39,23 +49,27 @@ export const createFAQController = async (req, res, next) => {
 // Get all FAQs with caching
 export const getAllFAQController = async (req, res, next) => {
   try {
-    const cachedFaqs = cache.get(cacheKey);
+    const locale = resolveLocale(req);
+    const localizedCacheKey = buildLocalizedCacheKey(cacheKey, locale);
+    const cachedFaqs = cache.get(localizedCacheKey);
     if (cachedFaqs) {
       return res.json({
         message: res._t("faq.fetched_from_cache"),
-        total: cachedFaqs.length,
-        data: cachedFaqs,
+        total: cachedFaqs.data.length,
+        data: cachedFaqs.data,
       });
     }
 
     const faqs = await Faq.find({ is_deleted: false }).select("-__v");
-    cache.set(cacheKey, faqs);
-
-    res.json({
+    const localizedFaqs = localizeData(faqs, locale);
+    const response = {
       message: res._t("faq.fetched_all"),
-      total: faqs.length,
-      data: faqs,
-    });
+      total: localizedFaqs.length,
+      data: localizedFaqs,
+    };
+    cache.set(localizedCacheKey, response);
+
+    res.json(response);
   } catch (error) {
     next(error);
   }
@@ -65,14 +79,17 @@ export const getAllFAQController = async (req, res, next) => {
 export const getFAQByIdController = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const locale = resolveLocale(req);
     validateObjectId(id);
 
-    const faq = await Faq.findOne({ _id: id, is_deleted: false }).select("-__v");
+    const faq = await Faq.findOne({ _id: id, is_deleted: false }).select(
+      "-__v",
+    );
     if (!faq) throw new NotFoundError(res._t("faq.not_found"));
 
     res.json({
       message: res._t("faq.fetched"),
-      data: faq,
+      data: localizeData(faq, locale),
     });
   } catch (error) {
     next(error);
@@ -84,6 +101,7 @@ export const updateFAQController = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { question, answer } = req.body;
+    const locale = resolveLocale(req);
     validateObjectId(id);
 
     const conflicts = {};
@@ -96,20 +114,23 @@ export const updateFAQController = async (req, res, next) => {
     const faq = await Faq.findOne({ _id: id, is_deleted: false });
     if (!faq) throw new NotFoundError(res._t("faq.not_found"));
 
-    if (question && question !== faq.question) {
-      const existingFAQ = await Faq.findOne({ question, is_deleted: false });
+    if (question && question.en !== faq.question.en) {
+      const existingFAQ = await Faq.findOne({
+        "question.en": question.en,
+        is_deleted: false,
+      });
       if (existingFAQ) throw new BadRequestError(res._t("faq.already_exists"));
-      faq.slug = slugify(question);
+      faq.slug = slugify(question.en);
     }
 
     Object.assign(faq, req.body);
     await faq.save();
 
-    cache.del(cacheKey);
+    clearLocalizedCache(cache, cacheKey);
 
     res.json({
       message: res._t("faq.updated"),
-      data: faq,
+      data: localizeData(faq, locale),
     });
   } catch (error) {
     next(error);
@@ -128,7 +149,7 @@ export const deleteFAQController = async (req, res, next) => {
     faq.is_deleted = true;
     await faq.save();
 
-    cache.del(cacheKey);
+    clearLocalizedCache(cache, cacheKey);
 
     res.json({
       message: res._t("faq.deleted"),

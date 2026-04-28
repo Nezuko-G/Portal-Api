@@ -2,7 +2,13 @@ import { Category } from "../../models/Category/category.model.js";
 import { BadRequestError, NotFoundError } from "../../utils/error.js";
 import { validateObjectId } from "../../utils/validateObjectId.js";
 import { JOB_CATEGORIES } from "../../utils/constants.js";
-import { slugify } from "../../utils/helpers.js";
+import {
+  buildLocalizedCacheKey,
+  clearLocalizedCache,
+  localizeData,
+  resolveLocale,
+  slugify,
+} from "../../utils/helpers.js";
 import { cache } from "../../config/cache.js";
 
 const cacheKey = "categories";
@@ -11,12 +17,13 @@ const cacheKey = "categories";
 export const createCategoryController = async (req, res, next) => {
   try {
     const { body: data } = req;
+    const locale = resolveLocale(req);
 
     if (!data.name) {
       throw new BadRequestError(res._t("category.name_required"));
     }
 
-    if (!JOB_CATEGORIES.includes(data.name)) {
+    if (!data.name.en || !JOB_CATEGORIES.includes(data.name.en)) {
       throw new BadRequestError(
         res._t("category.invalid_category", {
           categories: JOB_CATEGORIES.join(", "),
@@ -25,7 +32,7 @@ export const createCategoryController = async (req, res, next) => {
     }
 
     const existingCategory = await Category.findOne({
-      name: data.name,
+      "name.en": data.name.en,
       is_deleted: false,
     });
 
@@ -33,15 +40,15 @@ export const createCategoryController = async (req, res, next) => {
       throw new BadRequestError(res._t("category.already_exists"));
     }
 
-    const slug = slugify(data.name);
+    const slug = slugify(data.name.en);
     const newCategory = new Category({ slug, ...data });
 
     await newCategory.save();
-    cache.del(cacheKey);
+    clearLocalizedCache(cache, cacheKey);
 
     res.status(201).json({
       message: res._t("category.created"),
-      data: newCategory,
+      data: localizeData(newCategory, locale),
     });
   } catch (error) {
     next(error);
@@ -51,7 +58,9 @@ export const createCategoryController = async (req, res, next) => {
 // Get all categories with caching
 export const getAllCategoriesController = async (req, res, next) => {
   try {
-    const cachedCategories = cache.get(cacheKey);
+    const locale = resolveLocale(req);
+    const localizedCacheKey = buildLocalizedCacheKey(cacheKey, locale);
+    const cachedCategories = cache.get(localizedCacheKey);
 
     if (cachedCategories) {
       return res.json(cachedCategories);
@@ -63,13 +72,15 @@ export const getAllCategoriesController = async (req, res, next) => {
       "-__v",
     );
 
+    const localizedCategories = localizeData(categories, locale);
+
     const response = {
       message: res._t("category.fetched_all"),
-      total: categories.length,
-      data: categories,
+      total: localizedCategories.length,
+      data: localizedCategories,
     };
 
-    cache.set(cacheKey, response);
+    cache.set(localizedCacheKey, response);
 
     res.json(response);
   } catch (error) {
@@ -81,6 +92,7 @@ export const getAllCategoriesController = async (req, res, next) => {
 export const getOneCategoryController = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const locale = resolveLocale(req);
     validateObjectId(id, "category id");
 
     const category = await Category.findOne({
@@ -94,7 +106,7 @@ export const getOneCategoryController = async (req, res, next) => {
 
     res.json({
       message: res._t("category.fetched"),
-      data: category,
+      data: localizeData(category, locale),
     });
   } catch (error) {
     next(error);
@@ -120,7 +132,7 @@ export const deleteCategoryController = async (req, res, next) => {
     category.is_deleted = true;
     await category.save();
 
-    cache.del(cacheKey);
+    clearLocalizedCache(cache, cacheKey);
 
     res.json({
       message: res._t("category.deleted"),
@@ -135,6 +147,7 @@ export const updateCategoryController = async (req, res, next) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
+    const locale = resolveLocale(req);
 
     validateObjectId(id, "category id");
 
@@ -142,7 +155,7 @@ export const updateCategoryController = async (req, res, next) => {
       throw new BadRequestError(res._t("category.update_required"));
     }
 
-    if (updateData.name && !JOB_CATEGORIES.includes(updateData.name)) {
+    if (updateData.name && !JOB_CATEGORIES.includes(updateData.name.en)) {
       throw new BadRequestError(
         res._t("category.invalid_category", {
           categories: JOB_CATEGORIES.join(", "),
@@ -160,11 +173,11 @@ export const updateCategoryController = async (req, res, next) => {
       throw new NotFoundError(res._t("category.not_found"));
     }
 
-    cache.del(cacheKey);
+    clearLocalizedCache(cache, cacheKey);
 
     res.json({
       message: res._t("category.updated"),
-      data: category,
+      data: localizeData(category, locale),
     });
   } catch (error) {
     next(error);

@@ -1,36 +1,56 @@
 import Joi from "joi";
-import { JOB_CATEGORIES } from "../../utils/constants.js";
+
+const localizedTextSchema = (t) =>
+  Joi.object({
+    en: Joi.string()
+      .trim()
+      .required()
+      .messages({
+        "any.required": t("validation.title_en_required"),
+        "string.empty": t("validation.title_en_required"),
+        "string.base": t("validation.title_en_required"),
+      }),
+    ar: Joi.string()
+      .trim()
+      .required()
+      .messages({
+        "any.required": t("validation.title_ar_required"),
+        "string.empty": t("validation.title_ar_required"),
+        "string.base": t("validation.title_ar_required"),
+      }),
+  });
 
 export const createCategorySchema = (req) => {
   const t = req.__ || req._t || ((key) => key);
 
   return Joi.object({
-    name: Joi.string()
-      .valid(...JOB_CATEGORIES)
+    name: localizedTextSchema(t)
       .required()
-      .trim()
       .messages({
         "any.required": t("category.name_required"),
-        "string.empty": t("category.name_required"),
-        "any.only": t("category.invalid_category", {
-          categories: JOB_CATEGORIES.join(", "),
-        }),
+        "object.base": t("category.name_required"),
       }),
 
     slug: Joi.string().trim().lowercase().optional().messages({
       "string.base": "Slug must be a string",
     }),
 
-    description: Joi.string().allow("").optional().messages({
-      "string.base": "Description must be a string",
-    }),
+    description: Joi.object({
+      en: Joi.string().trim().allow("").required(),
+      ar: Joi.string().trim().allow("").required(),
+    })
+      .optional()
+      .messages({
+        "object.base":
+          "Description must be an object with 'en' and 'ar' fields",
+      }),
 
     keywords: Joi.array()
       .items(
         Joi.string().trim().messages({
           "string.base": "Each keyword must be a string",
           "string.empty": "Keywords cannot contain empty strings",
-        })
+        }),
       )
       .default([])
       .messages({
@@ -47,31 +67,32 @@ export const updateCategorySchema = (req) => {
   const t = req.__ || req._t || ((key) => key);
 
   return Joi.object({
-    name: Joi.string()
-      .valid(...JOB_CATEGORIES)
-      .trim()
+    name: localizedTextSchema(t)
       .optional()
       .messages({
-        "string.empty": t("category.name_required"),
-        "any.only": t("category.invalid_category", {
-          categories: JOB_CATEGORIES.join(", "),
-        }),
+        "object.base": t("category.name_required"),
       }),
 
     slug: Joi.string().trim().lowercase().optional().messages({
       "string.base": "Slug must be a string",
     }),
 
-    description: Joi.string().allow("").optional().messages({
-      "string.base": "Description must be a string",
-    }),
+    description: Joi.object({
+      en: Joi.string().trim().allow("").required(),
+      ar: Joi.string().trim().allow("").required(),
+    })
+      .optional()
+      .messages({
+        "object.base":
+          "Description must be an object with 'en' and 'ar' fields",
+      }),
 
     keywords: Joi.array()
       .items(
         Joi.string().trim().messages({
           "string.base": "Each keyword must be a string",
           "string.empty": "Keywords cannot contain empty strings",
-        })
+        }),
       )
       .optional()
       .messages({

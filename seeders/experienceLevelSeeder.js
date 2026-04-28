@@ -1,6 +1,6 @@
 import { slugify } from "../utils/helpers.js";
 import dbconnect from "../config/dbConnect.js";
-import { ExperienceLevel } from "../models/ExperienceLevel/experience.level.model.js";
+import { ExperienceLevelModel } from "../models/ExperienceLevel/experience.level.model.js";
 
 const EXPERIENCE_LEVELS = [
   { en: "Internship", ar: "تدريب", minYears: 0, maxYears: 0 },
@@ -25,9 +25,9 @@ const seedExperienceLevels = async () => {
   try {
     await dbconnect();
 
-    await ExperienceLevel.deleteMany();
+    await ExperienceLevelModel.deleteMany();
 
-    await ExperienceLevel.insertMany(experienceLevels);
+    await ExperienceLevelModel.insertMany(experienceLevels);
 
     console.log("Experience levels seeded successfully");
     process.exit(0);
