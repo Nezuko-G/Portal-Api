@@ -1,27 +1,24 @@
 import { Schema, model } from "mongoose";
+import { localizedStringField } from "../../utils/helpers.js";
 
 const CitySchema = new Schema(
   {
     name: {
-      type: String,
-      required: true,
-      trim: true,
+      ...localizedStringField(),
     },
     is_deleted: {
       type: Boolean,
       default: false,
     },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const CountrySchema = new Schema(
   {
     name: {
-      type: String,
-      required: true,
+      ...localizedStringField(),
       unique: true,
-      trim: true,
     },
     code: {
       type: String,
@@ -38,7 +35,7 @@ const CountrySchema = new Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 export const Country = model("Country", CountrySchema);
