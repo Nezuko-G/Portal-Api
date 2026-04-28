@@ -1,6 +1,6 @@
 import { slugify } from "../utils/helpers.js";
 import dbconnect from "../config/dbConnect.js";
-import { Keyword } from "../models/keyword/keyword.model.js";
+import { KeywordModel } from "../models/Keyword/keyword.model.js";
 
 const JOB_CATEGORIES_AR = [
   "الهندسة",
@@ -60,9 +60,9 @@ const seedKeywords = async () => {
   try {
     await dbconnect();
 
-    await Keyword.deleteMany();
+    await KeywordModel.deleteMany();
 
-    await Keyword.insertMany(keywords);
+    await KeywordModel.insertMany(keywords);
 
     console.log("Keywords seeded successfully");
     process.exit(0);
