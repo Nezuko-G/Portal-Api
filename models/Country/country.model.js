@@ -18,7 +18,6 @@ const CountrySchema = new Schema(
   {
     name: {
       ...localizedStringField(),
-      unique: true,
     },
     code: {
       type: String,
