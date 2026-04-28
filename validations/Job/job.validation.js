@@ -2,15 +2,30 @@ import Joi from "joi";
 
 const objectId = Joi.string().hex().length(24);
 
+const localizedTextSchema = (t, requiredMessages) =>
+  Joi.object({
+    en: Joi.string().trim().required().messages({
+      "any.required": requiredMessages.en,
+      "string.empty": requiredMessages.en,
+      "string.base": requiredMessages.en,
+    }),
+    ar: Joi.string().trim().required().messages({
+      "any.required": requiredMessages.ar,
+      "string.empty": requiredMessages.ar,
+      "string.base": requiredMessages.ar,
+    }),
+  });
+
 const listItemSchemaFactory = (t) =>
   Joi.object({
-    text: Joi.string()
-      .trim()
+    text: localizedTextSchema(t, {
+      en: t("validation.text_required"),
+      ar: t("validation.text_required"),
+    })
       .required()
       .messages({
         "any.required": t("validation.text_required"),
-        "string.empty": t("validation.text_required"),
-        "string.base": t("validation.text_required"),
+        "object.base": t("validation.text_required"),
       }),
   });
 
@@ -19,12 +34,14 @@ export const createJobSchema = (req) => {
   const listItemSchema = listItemSchemaFactory(t);
 
   return Joi.object({
-    title: Joi.string()
-      .trim()
+    title: localizedTextSchema(t, {
+      en: t("validation.title_en_required"),
+      ar: t("validation.title_ar_required"),
+    })
       .required()
       .messages({
         "any.required": t("validation.job_title_required"),
-        "string.empty": t("validation.job_title_required"),
+        "object.base": t("validation.job_title_required"),
       }),
 
     jobId: Joi.string().trim().messages({
@@ -43,11 +60,14 @@ export const createJobSchema = (req) => {
       "string.base": "Organization must be a string",
     }),
 
-    description: Joi.string()
+    description: localizedTextSchema(t, {
+      en: t("validation.job_description_required"),
+      ar: t("validation.job_description_required"),
+    })
       .required()
       .messages({
         "any.required": t("validation.job_description_required"),
-        "string.empty": t("validation.job_description_required"),
+        "object.base": t("validation.job_description_required"),
       }),
 
     fieldOfWork: objectId.required().messages({
@@ -64,7 +84,7 @@ export const createJobSchema = (req) => {
       .items(
         objectId.messages({
           "string.length": t("validation.invalid_object_id"),
-        })
+        }),
       )
       .default([])
       .messages({
@@ -98,9 +118,15 @@ export const createJobSchema = (req) => {
       "string.length": t("validation.invalid_object_id"),
     }),
 
-    locationDetails: Joi.string().trim().messages({
-      "string.base": "Location details must be a string",
-    }),
+    locationDetails: localizedTextSchema(t, {
+      en: "Location details must be provided in English",
+      ar: "Location details must be provided in Arabic",
+    })
+      .optional()
+      .messages({
+        "object.base":
+          "Location details must be an object with 'en' and 'ar' fields",
+      }),
 
     workMode: Joi.string()
       .valid("office", "remote", "hybrid")
@@ -117,9 +143,14 @@ export const createJobSchema = (req) => {
         "date.greater": t("validation.expiration_date_future"),
       }),
 
-    duration: Joi.string().messages({
-      "string.base": "Duration must be a string",
-    }),
+    duration: localizedTextSchema(t, {
+      en: "Duration must be provided in English",
+      ar: "Duration must be provided in Arabic",
+    })
+      .optional()
+      .messages({
+        "object.base": "Duration must be an object with 'en' and 'ar' fields",
+      }),
 
     is_deleted: Joi.boolean().default(false).messages({
       "boolean.base": "is_deleted must be a boolean",
@@ -136,12 +167,13 @@ export const updateJobSchema = (req) => {
   const listItemSchema = listItemSchemaFactory(t);
 
   return Joi.object({
-    title: Joi.string()
-      .trim()
+    title: Joi.object({
+      en: Joi.string().trim().required(),
+      ar: Joi.string().trim().required(),
+    })
       .optional()
       .messages({
-        "string.base": "Job title must be a string",
-        "string.empty": t("validation.job_title_required"),
+        "object.base": t("validation.job_title_required"),
       }),
 
     jobId: Joi.string().trim().optional().messages({
@@ -162,11 +194,13 @@ export const updateJobSchema = (req) => {
       "string.empty": "Organization cannot be empty",
     }),
 
-    description: Joi.string()
+    description: Joi.object({
+      en: Joi.string().trim().required(),
+      ar: Joi.string().trim().required(),
+    })
       .optional()
       .messages({
-        "string.base": "Job description must be a string",
-        "string.empty": t("validation.job_description_required"),
+        "object.base": t("validation.job_description_required"),
       }),
 
     fieldOfWork: objectId.optional().messages({
@@ -184,7 +218,7 @@ export const updateJobSchema = (req) => {
         objectId.messages({
           "string.length": t("validation.invalid_object_id"),
           "string.hex": t("validation.invalid_object_id"),
-        })
+        }),
       )
       .optional()
       .messages({
@@ -220,10 +254,15 @@ export const updateJobSchema = (req) => {
       "string.hex": t("validation.invalid_object_id"),
     }),
 
-    locationDetails: Joi.string().trim().optional().messages({
-      "string.base": "Location details must be a string",
-      "string.empty": "Location details cannot be empty",
-    }),
+    locationDetails: Joi.object({
+      en: Joi.string().trim().required(),
+      ar: Joi.string().trim().required(),
+    })
+      .optional()
+      .messages({
+        "object.base":
+          "Location details must be an object with 'en' and 'ar' fields",
+      }),
 
     workMode: Joi.string()
       .valid("office", "remote", "hybrid")
@@ -241,10 +280,14 @@ export const updateJobSchema = (req) => {
         "date.greater": t("validation.expiration_date_future"),
       }),
 
-    duration: Joi.string().optional().messages({
-      "string.base": "Duration must be a string",
-      "string.empty": "Duration cannot be empty",
-    }),
+    duration: Joi.object({
+      en: Joi.string().trim().required(),
+      ar: Joi.string().trim().required(),
+    })
+      .optional()
+      .messages({
+        "object.base": "Duration must be an object with 'en' and 'ar' fields",
+      }),
 
     is_deleted: Joi.boolean().optional().messages({
       "boolean.base": "is_deleted must be a boolean",
