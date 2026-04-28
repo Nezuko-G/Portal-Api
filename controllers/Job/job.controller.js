@@ -2,14 +2,16 @@ import { JobModel } from "../../models/Job/job.model.js";
 import { BadRequestError, NotFoundError } from "../../utils/error.js";
 import { validateObjectId } from "../../utils/validateObjectId.js";
 import { slugify } from "../../utils/helpers.js";
+import { localizeData, resolveLocale } from "../../utils/helpers.js";
 
 // Create a new Job
 export const createJobController = async (req, res, next) => {
   try {
     const { title, ...rest } = req.body;
+    const locale = resolveLocale(req);
     if (!title) throw new BadRequestError(res._t("job.title_required"));
 
-    const slug = slugify(title);
+    const slug = slugify(title.en);
     const newJob = new JobModel({ ...rest, title, slug });
     await newJob.save();
 
@@ -17,7 +19,12 @@ export const createJobController = async (req, res, next) => {
       .populate("fieldOfWork experienceLevel keywords country")
       .select("-__v");
 
-    res.status(201).json({ message: res._t("job.created"), data: populatedJob });
+    res
+      .status(201)
+      .json({
+        message: res._t("job.created"),
+        data: localizeData(populatedJob, locale),
+      });
   } catch (error) {
     next(error);
   }
@@ -40,17 +47,39 @@ export const getAllJobsController = async (req, res, next) => {
 
     const query = { is_deleted: false, is_active: true };
 
-    if (country) { validateObjectId(country, "country id"); query.country = country; }
-    if (fieldOfWork) { validateObjectId(fieldOfWork, "field of work id"); query.fieldOfWork = fieldOfWork; }
-    if (experienceLevel) { validateObjectId(experienceLevel, "experience level id"); query.experienceLevel = experienceLevel; }
-    if (jobType && ["full-time", "part-time", "internship"].includes(jobType)) query.jobType = jobType;
-    if (workMode && ["office", "remote", "hybrid"].includes(workMode)) query.workMode = workMode;
-    if (keyword) { validateObjectId(keyword, "keyword id"); query.keywords = keyword; }
-    if (search) query.$or = [
-      { title: { $regex: search, $options: "i" } },
-      { company: { $regex: search, $options: "i" } },
-      { description: { $regex: search, $options: "i" } },
-    ];
+    if (country) {
+      validateObjectId(country, "country id");
+      query.country = country;
+    }
+    if (fieldOfWork) {
+      validateObjectId(fieldOfWork, "field of work id");
+      query.fieldOfWork = fieldOfWork;
+    }
+    if (experienceLevel) {
+      validateObjectId(experienceLevel, "experience level id");
+      query.experienceLevel = experienceLevel;
+    }
+    if (jobType && ["full-time", "part-time", "internship"].includes(jobType))
+      query.jobType = jobType;
+    if (workMode && ["office", "remote", "hybrid"].includes(workMode))
+      query.workMode = workMode;
+    if (keyword) {
+      validateObjectId(keyword, "keyword id");
+      query.keywords = keyword;
+    }
+    if (search)
+      query.$or = [
+        { "title.en": { $regex: search, $options: "i" } },
+        { "title.ar": { $regex: search, $options: "i" } },
+        { company: { $regex: search, $options: "i" } },
+        { organization: { $regex: search, $options: "i" } },
+        { "description.en": { $regex: search, $options: "i" } },
+        { "description.ar": { $regex: search, $options: "i" } },
+        { "locationDetails.en": { $regex: search, $options: "i" } },
+        { "locationDetails.ar": { $regex: search, $options: "i" } },
+      ];
+
+    const locale = resolveLocale(req);
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
@@ -61,12 +90,12 @@ export const getAllJobsController = async (req, res, next) => {
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(parseInt(limit)),
-      JobModel.countDocuments(query)
+      JobModel.countDocuments(query),
     ]);
 
     res.json({
       message: res._t("job.fetched_all"),
-      data: jobs,
+      data: localizeData(jobs, locale),
       pagination: {
         total,
         page: parseInt(page),
@@ -83,15 +112,23 @@ export const getAllJobsController = async (req, res, next) => {
 export const getOneJobController = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const locale = resolveLocale(req);
     validateObjectId(id, "job id");
 
-    const job = await JobModel.findOne({ _id: id, is_deleted: false, is_active: true })
+    const job = await JobModel.findOne({
+      _id: id,
+      is_deleted: false,
+      is_active: true,
+    })
       .populate("fieldOfWork experienceLevel keywords country")
       .select("-__v");
 
     if (!job) throw new NotFoundError(res._t("job.not_found"));
 
-    res.json({ message: res._t("job.fetched"), data: job });
+    res.json({
+      message: res._t("job.fetched"),
+      data: localizeData(job, locale),
+    });
   } catch (error) {
     next(error);
   }
@@ -101,6 +138,7 @@ export const getOneJobController = async (req, res, next) => {
 export const updateJobController = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const locale = resolveLocale(req);
     validateObjectId(id, "job id");
 
     if (!req.body || Object.keys(req.body).length === 0) {
@@ -110,14 +148,17 @@ export const updateJobController = async (req, res, next) => {
     const job = await JobModel.findByIdAndUpdate(
       id,
       { $set: req.body },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     )
       .populate("fieldOfWork experienceLevel keywords country")
       .select("-__v");
 
     if (!job) throw new NotFoundError(res._t("job.not_found"));
 
-    res.json({ message: res._t("job.updated"), data: job });
+    res.json({
+      message: res._t("job.updated"),
+      data: localizeData(job, locale),
+    });
   } catch (error) {
     next(error);
   }
@@ -131,7 +172,8 @@ export const deleteJobController = async (req, res, next) => {
 
     const job = await JobModel.findById(id).select("-__v");
     if (!job) throw new NotFoundError(res._t("job.not_found"));
-    if (job.is_deleted) throw new BadRequestError(res._t("job.already_deleted"));
+    if (job.is_deleted)
+      throw new BadRequestError(res._t("job.already_deleted"));
 
     job.is_deleted = true;
     await job.save();
@@ -146,6 +188,7 @@ export const deleteJobController = async (req, res, next) => {
 export const toggleJobActivationController = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const locale = resolveLocale(req);
     validateObjectId(id, "job id");
 
     const job = await JobModel.findById(id);
@@ -155,8 +198,10 @@ export const toggleJobActivationController = async (req, res, next) => {
     await job.save();
 
     res.json({
-      message: job.is_active ? res._t("job.activated") : res._t("job.deactivated"),
-      data: job,
+      message: job.is_active
+        ? res._t("job.activated")
+        : res._t("job.deactivated"),
+      data: localizeData(job, locale),
     });
   } catch (error) {
     next(error);
