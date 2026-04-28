@@ -3,6 +3,12 @@ import { BadRequestError, NotFoundError } from "../../utils/error.js";
 import { validateObjectId } from "../../utils/validateObjectId.js";
 import { getCountryByName } from "../../utils/countries-data.js";
 import { cache } from "../../config/cache.js";
+import {
+  buildLocalizedCacheKey,
+  clearLocalizedCache,
+  localizeData,
+  resolveLocale,
+} from "../../utils/helpers.js";
 
 const cacheKey = "countries";
 
@@ -10,12 +16,13 @@ const cacheKey = "countries";
 export const createCountryController = async (req, res, next) => {
   try {
     const { name, code, cities } = req.body;
+    const locale = resolveLocale(req);
 
     if (!name || !code) {
       throw new BadRequestError(res._t("country.name_code_required"));
     }
 
-    const countryInfo = getCountryByName(name);
+    const countryInfo = getCountryByName(name.en);
     if (!countryInfo) {
       throw new BadRequestError(res._t("country.invalid_name"));
     }
@@ -28,12 +35,15 @@ export const createCountryController = async (req, res, next) => {
       throw new BadRequestError(res._t("country.cities_required"));
     }
 
-    const cityNames = cities.map((c) => c.name.toLowerCase());
+    const cityNames = cities.map((c) => c.name.en.toLowerCase());
     if (cityNames.length !== new Set(cityNames).size) {
       throw new BadRequestError(res._t("country.duplicate_cities"));
     }
 
-    const existingCountry = await Country.findOne({ name, is_deleted: false });
+    const existingCountry = await Country.findOne({
+      "name.en": name.en,
+      is_deleted: false,
+    });
     if (existingCountry) {
       throw new BadRequestError(res._t("country.already_exists"));
     }
@@ -41,11 +51,11 @@ export const createCountryController = async (req, res, next) => {
     const newCountry = new Country({ name, code, cities });
     await newCountry.save();
 
-    cache.del(cacheKey);
+    clearLocalizedCache(cache, cacheKey);
 
     res.status(201).json({
       message: res._t("country.created"),
-      country: newCountry,
+      country: localizeData(newCountry, locale),
     });
   } catch (error) {
     next(error);
@@ -55,7 +65,9 @@ export const createCountryController = async (req, res, next) => {
 // Get all countries with caching
 export const getAllCountriesController = async (req, res, next) => {
   try {
-    const cachedCountries = cache.get(cacheKey);
+    const locale = resolveLocale(req);
+    const localizedCacheKey = buildLocalizedCacheKey(cacheKey, locale);
+    const cachedCountries = cache.get(localizedCacheKey);
     if (cachedCountries) return res.json(cachedCountries);
 
     console.log("fetching from db");
@@ -73,10 +85,10 @@ export const getAllCountriesController = async (req, res, next) => {
           ? res._t("country.no_countries")
           : res._t("country.fetched_all"),
       total,
-      countries,
+      countries: localizeData(countries, locale),
     };
 
-    cache.set(cacheKey, response);
+    cache.set(localizedCacheKey, response);
 
     res.json(response);
   } catch (error) {
@@ -88,6 +100,7 @@ export const getAllCountriesController = async (req, res, next) => {
 export const getOneCountryController = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const locale = resolveLocale(req);
     validateObjectId(id, "country id");
 
     const country = await Country.findOne({
@@ -101,7 +114,7 @@ export const getOneCountryController = async (req, res, next) => {
 
     res.json({
       message: res._t("country.fetched"),
-      country,
+      country: localizeData(country, locale),
     });
   } catch (error) {
     next(error);
@@ -122,7 +135,7 @@ export const deleteCountryController = async (req, res, next) => {
     country.is_deleted = true;
     await country.save();
 
-    cache.del(cacheKey);
+    clearLocalizedCache(cache, cacheKey);
 
     res.json({
       message: res._t("country.deleted"),
@@ -137,6 +150,7 @@ export const updateCountryController = async (req, res, next) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
+    const locale = resolveLocale(req);
 
     validateObjectId(id, "country id");
 
@@ -154,11 +168,11 @@ export const updateCountryController = async (req, res, next) => {
       throw new NotFoundError(res._t("country.not_found"));
     }
 
-    cache.del(cacheKey);
+    clearLocalizedCache(cache, cacheKey);
 
     res.json({
       message: res._t("country.updated"),
-      country,
+      country: localizeData(country, locale),
     });
   } catch (error) {
     next(error);
