@@ -287,7 +287,7 @@
  *             Location:
  *               schema:
  *                 type: string
- *               example: http://localhost:5173/
+ *               example: https://nezuko-portal.vercel.app//
  *             Set-Cookie:
  *               schema:
  *                 type: string
@@ -344,7 +344,7 @@
  *             Location:
  *               schema:
  *                 type: string
- *               example: http://localhost:5173/
+ *               example: https://nezuko-portal.vercel.app//
  *             Set-Cookie:
  *               schema:
  *                 type: string

@@ -118,7 +118,7 @@ router.post("/github/revoke", loginLimiter, async (req, res) => {
 router.get(
   "/github/callback",
   passport.authenticate("github", {
-    failureRedirect: "http://localhost:5173/login?error=github_auth_failed",
+    failureRedirect: "https://nezuko-portal.vercel.app//login?error=github_auth_failed",
     session: false,
   }),
   (req, res) => {
@@ -140,9 +140,9 @@ router.get(
         });
       }
 
-      res.redirect("http://localhost:5173/");
+      res.redirect("https://nezuko-portal.vercel.app//");
     } catch (error) {
-      res.redirect("http://localhost:5173/login?error=github_callback_failed");
+      res.redirect("https://nezuko-portal.vercel.app//login?error=github_callback_failed");
     }
   },
 );
@@ -154,7 +154,7 @@ router.get(
 router.get(
   "/google/callback",
   passport.authenticate("google", {
-    failureRedirect: "http://localhost:5173/login?error=google_auth_failed",
+    failureRedirect: "https://nezuko-portal.vercel.app//login?error=google_auth_failed",
     session: false,
   }),
   (req, res) => {
@@ -169,10 +169,10 @@ router.get(
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
-      res.redirect("http://localhost:5173/");
+      res.redirect("https://nezuko-portal.vercel.app//");
     } catch (error) {
       console.error("Google callback error:", error);
-      res.redirect("http://localhost:5173/login?error=google_callback_failed");
+      res.redirect("https://nezuko-portal.vercel.app//login?error=google_callback_failed");
     }
   },
 );
