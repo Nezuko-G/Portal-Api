@@ -1,18 +1,18 @@
-# Nezuko API
+# Portal Api
 
 A highly optimized, multi-tenant capable talent acquisition and human resource management gateway engineered for enterprise-grade recruitment lifecycles.
 
-Nezuko API serves as the core backend engine for the Nezuko recruitment ecosystem. The project is architected to address the operational complexities of talent acquisition pipelines, offering a robust, secure, and localized portal for candidates, clients, and system administrators.
+Portal Api serves as the core backend engine for the Nezuko recruitment ecosystem. The project is architected to address the operational complexities of talent acquisition pipelines, offering a robust, secure, and localized portal for candidates, clients, and system administrators.
 
 ## Overview
 
-Nezuko API is built on a clean Node.js and TypeScript foundation, leveraging Express for its request-response pipeline. The architecture is engineered around the principles of separation of concerns, defensive security boundaries, and high throughput.
+Portal Api is built on a clean Node.js and TypeScript foundation, leveraging Express for its request-response pipeline. The architecture is engineered around the principles of separation of concerns, defensive security boundaries, and high throughput.
 
 ### Problem Space
 Enterprise recruitment systems are frequently bogged down by legacy interfaces, slow search capabilities, fragile file upload configurations that degrade server disk I/O, and rigid single-language database designs. This results in poor system reliability and significant friction in global hiring operations.
 
 ### Proposed Solution
-Nezuko API establishes a stateless, event-driven architecture that decouples key domains—such as authentication, job indexing, resume processing, and dynamic localized search—into dedicated service models.
+Portal Api establishes a stateless, event-driven architecture that decouples key domains—such as authentication, job indexing, resume processing, and dynamic localized search—into dedicated service models.
 
 ### Engineering Philosophy
 * Strict Type Safety: Developed entirely in TypeScript with strict compiler options to eliminate runtime type anomalies.
