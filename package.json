@@ -16,7 +16,7 @@
     "seed:faq": "tsx src/seeders/faqSeeder.ts",
     "seed:job": "tsx src/seeders/jobSeeder.ts",
     "seed:all": "npm run seed:category && npm run seed:country && npm run seed:experience && npm run seed:keyword && npm run seed:faq && npm run seed:job"
-  },
+    },
   "repository": {
     "type": "git",
     "url": "https://github.com/Nezuko-G/Portal-Api.git"
