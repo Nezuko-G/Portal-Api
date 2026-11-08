@@ -13,7 +13,7 @@ This skill guides agents on writing and running automated test suites, testing m
 
 - **Test Runner**: Jest (configured for native ES Modules with `--experimental-vm-modules`).
 - **HTTP Assertion**: Supertest for end-to-end route testing.
-- **Directory**: `src/tests/`
+- **Directory**: `tests/`
 
 ### Running Tests
 Execute the complete test suite:
@@ -28,7 +28,7 @@ npm run test:watch
 
 Run a specific test file:
 ```bash
-node --experimental-vm-modules ./node_modules/jest/bin/jest.js src/tests/localization.helpers.test.js
+node --experimental-vm-modules ./node_modules/jest/bin/jest.js tests/localization.helpers.test.js
 ```
 
 ---
