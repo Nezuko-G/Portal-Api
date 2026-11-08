@@ -226,7 +226,7 @@ Ensure all message keys used in validation and responses exist in:
 ## 3. Verification Checklist
 
 1. **Compilation Check**: Run `npm run build` or `npx tsc --noEmit` to verify type safety.
-2. **Route Testing**: Verify using Supertest in `src/tests/` or make a test request to `/api/<endpoint>`.
+2. **Route Testing**: Verify using Supertest in `tests/` or make a test request to `/api/<endpoint>`.
 3. **Locale Header Test**:
    - Send `Accept-Language: en` and verify English strings.
    - Send `Accept-Language: ar` and verify Arabic strings.

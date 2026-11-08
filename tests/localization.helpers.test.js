@@ -4,7 +4,7 @@ import {
   clearLocalizedCache,
   localizeData,
   resolveLocale,
-} from "../utils/helpers.js";
+} from "../src/utils/helpers.js";
 
 describe("localization helpers", () => {
   it("resolves supported locales", () => {
