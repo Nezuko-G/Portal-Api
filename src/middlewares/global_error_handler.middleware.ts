@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
+import { ApiResponse } from "../utils/response.js";
 
 interface CustomError extends Error {
   statusCode?: number;
@@ -13,23 +14,10 @@ const globalErrorHandler = (
   res: Response,
   next: NextFunction,
 ): void => {
-  const status = err.statusCode || 500;
+  const statusCode = err.statusCode || 500;
   const message = err.message || "Something went wrong";
 
-  const errorResponse: Record<string, any> = {
-    status,
-    message,
-  };
-
-  if (err.conflicts) {
-    errorResponse.conflicts = err.conflicts;
-  }
-
-  if (err.data) {
-    errorResponse.errors = err.data;
-  }
-
-  res.status(status).json(errorResponse);
+  ApiResponse.error(res, message, statusCode, err.data, err.conflicts);
 };
 
 export default globalErrorHandler;

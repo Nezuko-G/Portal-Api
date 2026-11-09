@@ -29,7 +29,7 @@ This document serves as the primary guidance file for AI agents working within t
    - `validations/`: Dynamic localized Joi schemas receiving `req`.
    - `models/`: Mongoose schemas with bilingual fields (`localizedStringField()`), `is_deleted: false`, and `timestamps: true`.
    - `services/`: Reusable business logic (JWT, password hashing, 3rd party APIs).
-3. **Defensive Error Handling**: Always catch errors and forward to `next(error)` or throw custom errors (`BadRequestError`, `NotFoundError`, `UnauthorizedError`, `ForbiddenError` from `src/utils/error.ts`). Never allow unhandled promise rejections.
+3. **Defensive Error Handling & Unified Response**: Always catch errors and forward to `next(error)` or throw custom errors (`BadRequestError`, `NotFoundError`, `UnauthorizedError`, `ForbiddenError` from `src/utils/error.ts`). Use the `ApiResponse` class (`src/utils/response.ts`) to ensure consistent response envelopes for both success and error paths.
 4. **Id Sanitization**: Always validate `req.params.id` using `validateObjectId()` before querying MongoDB.
 5. **Localization Integrity**: Any new user-facing text, error message, or validation alert must be added to both `src/locales/en.json` and `src/locales/ar.json`.
 6. **Stateless File Uploads**: File uploads must use Multer memory storage and stream buffers to Cloudinary via `streamifier`. Never write uploaded files to local server disk.
@@ -43,9 +43,11 @@ Specialized runbooks and cheatsheets for tasks in this repository are located un
 | Skill Name | Path | When to Use |
 |:---|:---|:---|
 | **`api-endpoint-scaffolding`** | [.agents/skills/api-endpoint-scaffolding/SKILL.md](./.agents/skills/api-endpoint-scaffolding/SKILL.md) | Implementing or refactoring endpoints, routes, controllers, Mongoose models, or Joi validation schemas. |
+| **`api-unified-response`** | [.agents/skills/api-unified-response/SKILL.md](./.agents/skills/api-unified-response/SKILL.md) | Formatting and standardizing API response envelopes (success, pagination, errors) via the `ApiResponse` class. |
 | **`api-localization-cache`** | [.agents/skills/api-localization-cache/SKILL.md](./.agents/skills/api-localization-cache/SKILL.md) | Managing bilingual English/Arabic messages, response localization (`localizeData`), and in-memory cache invalidation (`node-cache`). |
 | **`api-auth-security`** | [.agents/skills/api-auth-security/SKILL.md](./.agents/skills/api-auth-security/SKILL.md) | Handling authentication (JWT, cookies, OAuth), RBAC (`checkRoles`), password hashing, rate limiting, and secure file uploads. |
 | **`api-testing-seeding`** | [.agents/skills/api-testing-seeding/SKILL.md](./.agents/skills/api-testing-seeding/SKILL.md) | Writing and running unit/integration tests with Jest & Supertest, or creating and executing database seeders. |
+| **`git-workflow-pr-style`** | [.agents/skills/git-workflow-pr-style/SKILL.md](./.agents/skills/git-workflow-pr-style/SKILL.md) | Branch naming strategy, Conventional Commits, Pull Request standards, templates, and review checklists. |
 
 ---
 
