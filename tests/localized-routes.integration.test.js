@@ -47,37 +47,37 @@ const FaqMock = jest.fn();
 FaqMock.find = jest.fn();
 FaqMock.findOne = jest.fn();
 
-jest.unstable_mockModule("../config/cache.js", () => ({
+jest.unstable_mockModule("../src/config/cache.js", () => ({
   cache: cacheMock,
 }));
 
-jest.unstable_mockModule("../models/Category/category.model.js", () => ({
+jest.unstable_mockModule("../src/models/Category/category.model.js", () => ({
   Category: CategoryMock,
 }));
 
-jest.unstable_mockModule("../models/Country/country.model.js", () => ({
+jest.unstable_mockModule("../src/models/Country/country.model.js", () => ({
   Country: CountryMock,
 }));
 
-jest.unstable_mockModule("../models/FAQ/faq.model.js", () => ({
+jest.unstable_mockModule("../src/models/FAQ/faq.model.js", () => ({
   Faq: FaqMock,
 }));
 
 jest.unstable_mockModule(
-  "../middlewares/authenticate_token.middlware.js",
+  "../src/middlewares/authenticate_token.middlware.js",
   () => ({
     authenticateToken: (_req, _res, next) => next(),
   }),
 );
 
-jest.unstable_mockModule("../middlewares/check_roles.middleware.js", () => ({
+jest.unstable_mockModule("../src/middlewares/check_roles.middleware.js", () => ({
   checkRole: () => (_req, _res, next) => next(),
 }));
 
 const { CategoryRouter } =
-  await import("../routers/Category/category.router.js");
-const { CountryRouter } = await import("../routers/Country/country.routes.js");
-const { FAQRouter } = await import("../routers/FAQ/faq.route.js");
+  await import("../src/routers/Category/category.router.js");
+const { CountryRouter } = await import("../src/routers/Country/country.routes.js");
+const { FAQRouter } = await import("../src/routers/FAQ/faq.route.js");
 
 const buildApp = () => {
   const app = express();

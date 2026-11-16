@@ -2,7 +2,7 @@ import { describe, expect, it } from "@jest/globals";
 import {
   createJobSchema,
   updateJobSchema,
-} from "../validations/Job/job.validation.js";
+} from "../src/validations/Job/job.validation.js";
 
 const makeRequest = () => ({
   __: (key) => key,

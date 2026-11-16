@@ -12,13 +12,27 @@ export const createJobController = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const { title, ...rest } = req.body;
+    const { title, company: bodyCompany, ...rest } = req.body; 
     const locale = resolveLocale(req);
+    
+    const userCompany = (req as any).user?.company;
+
     if (!title)
       throw new BadRequestError((res as any)._t("job.title_required"));
 
+    if (!userCompany) {
+      throw new BadRequestError("Unauthorized: Company information is missing from your token.");
+    }
+
     const slug = slugify(title.en);
-    const newJob = new JobModel({ ...rest, title, slug });
+    
+    const newJob = new JobModel({ 
+      ...rest, 
+      title, 
+      slug, 
+      company: userCompany 
+    });
+    
     await newJob.save();
 
     const populatedJob = await JobModel.findById(newJob._id)
@@ -54,6 +68,13 @@ export const getAllJobsController = async (
     } = req.query;
 
     const query: any = { is_deleted: false, is_active: true };
+
+    if ((req as any).user && (req as any).user.role === 'hr') {
+      query.company = (req as any).user.company; 
+    } 
+    else if (req.query.company) {
+      query.company = req.query.company;
+    }
 
     if (country) {
       validateObjectId(country as string, "country id");
@@ -91,7 +112,6 @@ export const getAllJobsController = async (
       ];
 
     const locale = resolveLocale(req);
-
     const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
 
     const [jobs, total] = await Promise.all([
@@ -149,7 +169,7 @@ export const getOneJobController = async (
   }
 };
 
-// Update Job
+//// Update Job
 export const updateJobController = async (
   req: Request,
   res: Response,
@@ -158,21 +178,25 @@ export const updateJobController = async (
   try {
     const { id } = req.params;
     const locale = resolveLocale(req);
+    const userCompany = (req as any).user.company; 
+
     validateObjectId(id, "job id");
 
     if (!req.body || Object.keys(req.body).length === 0) {
       throw new BadRequestError((res as any)._t("job.update_required"));
     }
 
-    const job = await JobModel.findByIdAndUpdate(
-      id,
+    delete req.body.company; 
+
+    const job = await JobModel.findOneAndUpdate(
+      { _id: id, company: userCompany }, 
       { $set: req.body },
       { new: true, runValidators: true },
     )
       .populate("fieldOfWork experienceLevel keywords country")
       .select("-__v");
 
-    if (!job) throw new NotFoundError((res as any)._t("job.not_found"));
+    if (!job) throw new NotFoundError((res as any)._t("job.not_found_or_unauthorized"));
 
     res.json({
       message: (res as any)._t("job.updated"),
@@ -191,10 +215,13 @@ export const deleteJobController = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
+    const userCompany = (req as any).user.company;
+
     validateObjectId(id, "job id");
 
-    const job = await JobModel.findById(id).select("-__v");
-    if (!job) throw new NotFoundError((res as any)._t("job.not_found"));
+    const job = await JobModel.findOne({ _id: id, company: userCompany }).select("-__v");
+    
+    if (!job) throw new NotFoundError((res as any)._t("job.not_found_or_unauthorized"));
     if (job.is_deleted)
       throw new BadRequestError((res as any)._t("job.already_deleted"));
 
@@ -216,10 +243,13 @@ export const toggleJobActivationController = async (
   try {
     const { id } = req.params;
     const locale = resolveLocale(req);
+    const userCompany = (req as any).user.company;
+
     validateObjectId(id, "job id");
 
-    const job = await JobModel.findById(id);
-    if (!job) throw new NotFoundError((res as any)._t("job.not_found"));
+    const job = await JobModel.findOne({ _id: id, company: userCompany });
+    
+    if (!job) throw new NotFoundError((res as any)._t("job.not_found_or_unauthorized"));
 
     job.is_active = !job.is_active;
     await job.save();
