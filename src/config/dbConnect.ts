@@ -1,10 +1,9 @@
 import mongoose from "mongoose";
-import { config } from "dotenv";
-
-config();
+import "./env.js";
 
 const dbconnect = async (): Promise<void> => {
   const url = process.env.MONGODB_URL;
+  
   if (!url) {
     throw new Error("MONGODB_URL is not defined in environment variables");
   }

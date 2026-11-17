@@ -1,10 +1,8 @@
+import "./config/env.js";
 import { Server } from "node:http";
-import { config } from "dotenv";
 import mongoose from "mongoose";
 import app from "./app.js";
 import dbconnect from "./config/dbConnect.js";
-
-config();
 
 // Global handler for uncaught synchronous exceptions
 process.on("uncaughtException", (error: Error) => {
@@ -64,19 +62,19 @@ process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 
 const startServer = async (): Promise<void> => {
   try {
-    // 1. Connect to Database
+    // Connect to Database
     await dbconnect();
 
-    // 2. Start HTTP Server
+    // Start HTTP Server
     server = app.listen(PORT, () => {
       console.log("==================================================");
-      console.log(`🚀 Nezuko API Server running in [${NODE_ENV}] mode`);
-      console.log(`📡 URL: http://localhost:${PORT}`);
-      console.log(`📑 Swagger Docs: http://localhost:${PORT}/api-docs`);
+      console.log(`Nezuko API Server running in [${NODE_ENV}] mode`);
+      console.log(`URL: http://localhost:${PORT}`);
+      console.log(`Swagger Docs: http://localhost:${PORT}/api-docs`);
       console.log("==================================================");
     });
 
-    // 3. Handle server errors (e.g. port already in use)
+    // Handle server errors 
     server.on("error", (error: NodeJS.ErrnoException) => {
       if (error.code === "EADDRINUSE") {
         console.error(`Error: Port ${PORT} is already in use.`);
