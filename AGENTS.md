@@ -46,6 +46,7 @@ Specialized runbooks and cheatsheets for tasks in this repository are located un
 | **`api-unified-response`** | [.agents/skills/api-unified-response/SKILL.md](./.agents/skills/api-unified-response/SKILL.md) | Formatting and standardizing API response envelopes (success, pagination, errors) via the `ApiResponse` class. |
 | **`api-localization-cache`** | [.agents/skills/api-localization-cache/SKILL.md](./.agents/skills/api-localization-cache/SKILL.md) | Managing bilingual English/Arabic messages, response localization (`localizeData`), and in-memory cache invalidation (`node-cache`). |
 | **`api-auth-security`** | [.agents/skills/api-auth-security/SKILL.md](./.agents/skills/api-auth-security/SKILL.md) | Handling authentication (JWT, cookies, OAuth), RBAC (`checkRoles`), password hashing, rate limiting, and secure file uploads. |
+| **`api-environment-config`** | [.agents/skills/api-environment-config/SKILL.md](./.agents/skills/api-environment-config/SKILL.md) | Managing, configuring, or switching environment variables between Development and Production environments. |
 | **`api-testing-seeding`** | [.agents/skills/api-testing-seeding/SKILL.md](./.agents/skills/api-testing-seeding/SKILL.md) | Writing and running unit/integration tests with Jest & Supertest, or creating and executing database seeders. |
 | **`git-workflow-pr-style`** | [.agents/skills/git-workflow-pr-style/SKILL.md](./.agents/skills/git-workflow-pr-style/SKILL.md) | Branch naming strategy, Conventional Commits, Pull Request standards, templates, and review checklists. |
 
