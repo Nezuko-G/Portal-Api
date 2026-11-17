@@ -1,3 +1,4 @@
+import "./env.js";
 import passport from "passport";
 import {
   Strategy as GoogleStrategy,
@@ -5,10 +6,7 @@ import {
 } from "passport-google-oauth20";
 import User from "../models/User/user.model.js";
 import { generateToken } from "../services/jwt.service.js";
-import dotenv from "dotenv";
 import { VerifyCallback } from "passport-oauth2";
-
-dotenv.config();
 
 interface UserProfile {
   user: any;

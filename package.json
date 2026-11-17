@@ -7,6 +7,7 @@
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js",
     "test:watch": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --watch",
     "start": "tsx src/server.ts",
+    "start:prod": "node dist/server.js",
     "dev": "nodemon --exec tsx src/server.ts",
     "build": "tsc -p tsconfig.json",
     "seed:category": "tsx src/seeders/categorySeeder.ts",

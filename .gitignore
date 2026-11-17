@@ -1,6 +1,8 @@
 node_modules
 dist
 .env
+.env.*
+!.env.example
 .DS_Store
 .vscode
 npm-debug.log*
@@ -14,4 +16,3 @@ yarn-error.log*
 coverage
 *.local
 .vercel
-.env*.local
