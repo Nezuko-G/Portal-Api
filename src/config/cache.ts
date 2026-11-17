@@ -9,14 +9,16 @@ export const cache: NodeCache = new NodeCache({
   maxKeys: 5000,
 });
 
+/** Reads from the cache */
+export function readCache<T>(key: string): T | undefined {
+  return cache.get<T>(key);
+}
 
-export async function getOrSet<T>(
+/** Fetches data from the source and stores it in the cache */
+export async function fetchAndCache<T>(
   key: string,
   fetcher: () => Promise<T>
 ): Promise<T> {
-  const cached = cache.get<T>(key);
-  if (cached !== undefined) return cached;
-
   const value = await fetcher();
   cache.set(key, value);
   return value;
